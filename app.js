@@ -108,10 +108,9 @@ const initPhysics = () => {
       lastMoveX: 0,
       lastMoveY: 0,
       lastMoveTime: 0,
-      targetY: y,
+      startY: y,
       paddingTop,
       paddingBottom,
-      stackIndex: 0,
     };
     return state;
   });
@@ -177,14 +176,16 @@ const initPhysics = () => {
     });
   };
 
-  const computeStackTargets = () => {
-    states.forEach(updateTileHeight);
-    const sorted = [...states].sort((a, b) => a.stackIndex - b.stackIndex);
+  const resolveStacking = () => {
+    const sorted = [...states].sort((a, b) => a.y - b.y);
     let cursorY = 0;
     sorted.forEach((state) => {
-      const nextTarget = cursorY;
-      state.targetY = Math.min(state.y, nextTarget);
-      cursorY = state.targetY + state.height + 8;
+      const shouldClamp = state.y < cursorY && state.y < state.startY;
+      if (shouldClamp) {
+        state.y = cursorY;
+        state.vy = 0;
+      }
+      cursorY = state.y + state.height + 8;
     });
     container.style.height = `${Math.max(cursorY, container.clientHeight)}px`;
   };
@@ -215,21 +216,26 @@ const initPhysics = () => {
     lastTime = time;
 
     if (floatActive) {
+      states.forEach(updateTileHeight);
       states.forEach((state) => {
         if (state.dragging) {
           return;
         }
-        const dy = state.targetY - state.y;
-        const stiffness = 10;
-        const damping = Math.pow(0.25, dt * 60);
-        state.vy += dy * stiffness * dt;
-        state.vy *= damping;
+        if (state.y <= 0) {
+          state.y = 0;
+          state.vy = 0;
+          return;
+        }
+        const targetVy = -state.floatSpeed;
+        const ease = 1 - Math.pow(0.2, dt * 60);
+        state.vy += (targetVy - state.vy) * ease;
         state.y += state.vy * dt;
-        if (Math.abs(dy) < 0.5 && Math.abs(state.vy) < 0.05) {
-          state.y = state.targetY;
+        if (state.y < 0) {
+          state.y = 0;
           state.vy = 0;
         }
       });
+      resolveStacking();
     }
 
     states.forEach((state) => {
@@ -262,9 +268,8 @@ const initPhysics = () => {
 
   const startFloat = () => {
     states.forEach((state) => {
-      state.stackIndex = state.y;
+      state.startY = state.y;
     });
-    computeStackTargets();
     floatActive = true;
   };
 
@@ -341,6 +346,7 @@ const initPhysics = () => {
       state.dragging = false;
       state.tile.classList.remove("is-dragging");
       content.releasePointerCapture(event.pointerId);
+      state.startY = state.y;
       scheduleFloat();
     };
 
