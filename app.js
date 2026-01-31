@@ -84,18 +84,23 @@ const initPhysics = () => {
     const rect = tile.getBoundingClientRect();
     const x = rect.left - containerRect.left;
     const y = rect.top - containerRect.top;
+    const content = tile.querySelector(".section-content");
     const state = {
       tile,
+      content,
       x,
       y,
       width: rect.width,
       height: rect.height,
       vx: 0,
       vy: 0,
-      floatSpeed: 8 + Math.random() * 14,
+      floatSpeed: 6 + Math.random() * 10,
       dragging: false,
       dragOffsetX: 0,
       dragOffsetY: 0,
+      lastMoveX: 0,
+      lastMoveY: 0,
+      lastMoveTime: 0,
     };
     return state;
   });
@@ -157,6 +162,26 @@ const initPhysics = () => {
       });
     }
 
+    states.forEach((state) => {
+      if (state.dragging) {
+        return;
+      }
+      if (!floatActive) {
+        state.x += state.vx * dt;
+        state.y += state.vy * dt;
+        const friction = Math.pow(0.92, dt * 60);
+        state.vx *= friction;
+        state.vy *= friction;
+        if (Math.abs(state.vx) < 0.01) {
+          state.vx = 0;
+        }
+        if (Math.abs(state.vy) < 0.01) {
+          state.vy = 0;
+        }
+      }
+      clampPosition(state);
+    });
+
     applyPositions();
     requestAnimationFrame(step);
   };
@@ -190,8 +215,11 @@ const initPhysics = () => {
   scheduleFloat();
 
   states.forEach((state) => {
-    const { tile } = state;
-    tile.addEventListener("pointerdown", (event) => {
+    const { tile, content } = state;
+    if (!content) {
+      return;
+    }
+    content.addEventListener("pointerdown", (event) => {
       if (event.pointerType === "mouse" && event.button !== 0) {
         return;
       }
@@ -200,13 +228,25 @@ const initPhysics = () => {
       state.tile.classList.add("is-dragging");
       state.dragOffsetX = event.clientX - state.x;
       state.dragOffsetY = event.clientY - state.y;
-      tile.setPointerCapture(event.pointerId);
+      state.lastMoveX = event.clientX;
+      state.lastMoveY = event.clientY;
+      state.lastMoveTime = performance.now();
+      content.setPointerCapture(event.pointerId);
     });
 
-    tile.addEventListener("pointermove", (event) => {
+    content.addEventListener("pointermove", (event) => {
       if (!state.dragging) {
         return;
       }
+      const now = performance.now();
+      const dt = Math.max((now - state.lastMoveTime) / 1000, 0.001);
+      const dx = event.clientX - state.lastMoveX;
+      const dy = event.clientY - state.lastMoveY;
+      state.vx = dx / dt;
+      state.vy = dy / dt;
+      state.lastMoveX = event.clientX;
+      state.lastMoveY = event.clientY;
+      state.lastMoveTime = now;
       state.x = event.clientX - state.dragOffsetX;
       state.y = event.clientY - state.dragOffsetY;
       clampPosition(state);
@@ -219,12 +259,12 @@ const initPhysics = () => {
       }
       state.dragging = false;
       state.tile.classList.remove("is-dragging");
-      tile.releasePointerCapture(event.pointerId);
+      content.releasePointerCapture(event.pointerId);
       scheduleFloat();
     };
 
-    tile.addEventListener("pointerup", endDrag);
-    tile.addEventListener("pointercancel", endDrag);
+    content.addEventListener("pointerup", endDrag);
+    content.addEventListener("pointercancel", endDrag);
   });
 
   requestAnimationFrame(step);

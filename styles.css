@@ -95,6 +95,7 @@ code {
   position: relative;
   transition: transform 0.3s ease;
   cursor: grab;
+  pointer-events: none;
 }
 
 .section.is-dragging {
@@ -121,6 +122,7 @@ body.is-loading .section {
 .section-content {
   column-count: 1;
   column-gap: 0;
+  pointer-events: auto;
 }
 
 .section-content--image {
@@ -128,6 +130,7 @@ body.is-loading .section {
   display: flex;
   align-items: center;
   justify-content: center;
+  pointer-events: auto;
 }
 
 .section-content--image img {
