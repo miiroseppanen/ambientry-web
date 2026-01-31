@@ -70,45 +70,18 @@ const renderSection = (section, markdown, delaySeconds) => {
     });
   };
 
-  let hoverPending = false;
-  let lastHoverEvent = null;
-
-  const scheduleHoverJump = () => {
-    if (hoverPending || !lastHoverEvent) {
-      return;
-    }
-    hoverPending = true;
-    requestAnimationFrame(() => {
-      hoverPending = false;
-      if (lastHoverEvent) {
-        jumpToPointer(lastHoverEvent);
-      }
-    });
-  };
-
   wrapper.addEventListener("pointerenter", (event) => {
     if (event.pointerType !== "mouse") {
       return;
     }
-    lastHoverEvent = event;
-    wrapper.classList.add("is-boosted");
-    scheduleHoverJump();
-  });
-
-  wrapper.addEventListener("pointermove", (event) => {
-    if (event.pointerType !== "mouse") {
-      return;
-    }
-    lastHoverEvent = event;
-    scheduleHoverJump();
+    wrapper.classList.add("is-hovered");
   });
 
   wrapper.addEventListener("pointerleave", (event) => {
     if (event.pointerType !== "mouse") {
       return;
     }
-    lastHoverEvent = null;
-    wrapper.classList.remove("is-boosted");
+    wrapper.classList.remove("is-hovered");
   });
 
   wrapper.addEventListener("pointerdown", (event) => {
