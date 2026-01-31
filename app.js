@@ -87,24 +87,66 @@ const renderError = (message) => {
   return errorBlock;
 };
 
+const getInlineManifest = () => {
+  const manifestTag = document.getElementById("content-manifest");
+  if (!manifestTag) {
+    return null;
+  }
+  try {
+    return JSON.parse(manifestTag.textContent);
+  } catch (error) {
+    return null;
+  }
+};
+
+const getInlineMarkdown = (id) => {
+  const block = document.querySelector(`[data-section="${id}"]`);
+  if (!block) {
+    return null;
+  }
+  return block.textContent.trim();
+};
+
 const loadSections = async () => {
   try {
-    const response = await fetch("content.json");
-    if (!response.ok) {
+    let manifest = null;
+    try {
+      const response = await fetch("content.json");
+      if (response.ok) {
+        manifest = await response.json();
+      }
+    } catch (error) {
+      manifest = null;
+    }
+    if (!manifest) {
+      manifest = getInlineManifest();
+    }
+    if (!manifest) {
       throw new Error("Sisältöluetteloa ei löytynyt.");
     }
-    const manifest = await response.json();
     SECTION_CONTAINER.innerHTML = "";
 
     for (const section of manifest.sections) {
-      const sectionResponse = await fetch(section.file);
-      if (!sectionResponse.ok) {
+      let markdown = null;
+      if (section.file) {
+        try {
+          const sectionResponse = await fetch(section.file);
+          if (sectionResponse.ok) {
+            markdown = await sectionResponse.text();
+          }
+        } catch (error) {
+          markdown = null;
+        }
+      }
+      if (!markdown) {
+        markdown = getInlineMarkdown(section.id);
+      }
+      if (!markdown) {
         SECTION_CONTAINER.appendChild(
           renderError(`Osio "${section.title}" ei lataudu.`)
         );
         continue;
       }
-      const markdown = await sectionResponse.text();
       SECTION_CONTAINER.appendChild(renderSection(section, markdown));
     }
   } catch (error) {
