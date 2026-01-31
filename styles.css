@@ -97,7 +97,7 @@ body.is-loading .section {
 }
 
 body.is-ready .section {
-  animation: tile-fade 3s ease forwards;
+  animation: tile-fade 4s ease forwards;
   animation-delay: var(--tile-delay, 0s);
 }
 

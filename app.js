@@ -200,9 +200,9 @@ const loadSections = async () => {
 
     const totalSlots = Math.max(morseSlots.length - 1, 1);
     for (const [slotIndex, slot] of morseSlots.entries()) {
-      const spreadSeconds = 2;
+      const spreadSeconds = 1;
       const delaySeconds =
-        1 + (slotIndex / totalSlots) * spreadSeconds + (slotIndex % 5) * 0.2;
+        0.4 + (slotIndex / totalSlots) * spreadSeconds + (slotIndex % 5) * 0.1;
       if (slot === "-") {
         SECTION_CONTAINER.appendChild(
           renderEmptySection({ id: `empty-${slotIndex}` }, delaySeconds)
