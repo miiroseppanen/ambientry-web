@@ -123,6 +123,7 @@ body.is-loading .section {
   column-count: 1;
   column-gap: 0;
   pointer-events: auto;
+  padding: 6px 0;
 }
 
 .section-content--image {
