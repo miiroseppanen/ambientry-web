@@ -175,29 +175,13 @@ const initPhysics = () => {
   };
 
   const computeStackTargets = () => {
-    const columnGap = 24;
-    const columns = new Map();
-    states.forEach((state) => {
-      const columnWidth = state.width + columnGap;
-      const columnIndex =
-        columnWidth > 0 ? Math.round(state.x / columnWidth) : 0;
-      if (!columns.has(columnIndex)) {
-        columns.set(columnIndex, []);
-      }
-      columns.get(columnIndex).push(state);
+    const sorted = [...states].sort((a, b) => a.y - b.y);
+    let cursorY = 0;
+    sorted.forEach((state) => {
+      state.targetY = cursorY;
+      cursorY += state.height + 8;
     });
-
-    let maxBottom = 0;
-    columns.forEach((columnStates) => {
-      columnStates.sort((a, b) => a.y - b.y);
-      let cursorY = 0;
-      columnStates.forEach((state) => {
-        state.targetY = cursorY;
-        cursorY += state.height + 8;
-      });
-      maxBottom = Math.max(maxBottom, cursorY);
-    });
-    container.style.height = `${Math.max(maxBottom, container.clientHeight)}px`;
+    container.style.height = `${Math.max(cursorY, container.clientHeight)}px`;
   };
 
   const isMobileLayout = () =>
