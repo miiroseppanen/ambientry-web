@@ -2,6 +2,8 @@
 
 Suomen Ambientyhdistys **~**
 
+Live: https://sayry-web-ambientyhdistys.vercel.app/
+
 ## Sisällön hallinta
 - `content/index.json` listaa `content/`-kansion markdown-tiedostot.
 - Tiedostot nimetään kolmella numerolla: `001-otsikko.md`.
