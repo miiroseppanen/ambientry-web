@@ -1,5 +1,21 @@
 // App: build the grid from content files and apply morse rhythm.
 const SECTION_CONTAINER = document.getElementById("sections");
+const BASE_TITLE = "Suomen Ambientyhdistys ry";
+const TITLE_WITH_TILDE = `${BASE_TITLE} ~`;
+
+const initTitleAnimation = () => {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    document.title = TITLE_WITH_TILDE;
+    return;
+  }
+  let showTilde = true;
+  const tick = () => {
+    document.title = showTilde ? TITLE_WITH_TILDE : BASE_TITLE;
+    showTilde = !showTilde;
+  };
+  tick();
+  window.setInterval(tick, 1200);
+};
 
 // Minimal inline markdown parsing for safe, tiny content blocks.
 const escapeHtml = (value) =>
@@ -284,4 +300,5 @@ const loadSections = async () => {
   }
 };
 
+initTitleAnimation();
 loadSections();
