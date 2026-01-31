@@ -82,7 +82,7 @@ code {
   gap: 12px;
   min-height: 0;
   aspect-ratio: 1 / 1;
-  overflow: auto;
+  overflow: hidden;
 }
 
 .section--empty {
@@ -90,9 +90,29 @@ code {
   min-height: 0;
 }
 
+.section-scroller {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  animation: slow-scroll 160s linear infinite;
+}
+
 .section-content {
   column-count: 1;
   column-gap: 0;
+}
+
+.section-content--clone {
+  padding-top: 24px;
+}
+
+@keyframes slow-scroll {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-50%);
+  }
 }
 
 .section-content p,
@@ -126,5 +146,11 @@ code {
 @media (max-width: 600px) {
   .sections {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .section-scroller {
+    animation: none;
   }
 }

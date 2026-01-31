@@ -37,11 +37,19 @@ const renderSection = (section, markdown) => {
   wrapper.className = "section";
   wrapper.id = section.id;
 
+  const scroller = document.createElement("div");
+  scroller.className = "section-scroller";
+
   const content = document.createElement("div");
   content.className = "section-content";
   content.innerHTML = parseMarkdown(markdown);
 
-  wrapper.appendChild(content);
+  const clone = content.cloneNode(true);
+  clone.classList.add("section-content--clone");
+
+  scroller.appendChild(content);
+  scroller.appendChild(clone);
+  wrapper.appendChild(scroller);
   return wrapper;
 };
 
