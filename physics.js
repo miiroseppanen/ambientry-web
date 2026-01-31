@@ -197,10 +197,16 @@ const initPhysics = (container) => {
           return;
         }
         const dy = state.targetY - state.y;
-        const stiffness = mobileLayout ? 3 : 6;
-        const damping = Math.pow(mobileLayout ? 0.25 : 0.35, dt * 60);
+        const stiffness = mobileLayout ? 1.2 : 2;
+        const damping = Math.pow(mobileLayout ? 0.18 : 0.22, dt * 60);
         state.vy += dy * stiffness * dt;
         state.vy *= damping;
+        const maxSpeed = mobileLayout ? 18 : 26;
+        if (state.vy > maxSpeed) {
+          state.vy = maxSpeed;
+        } else if (state.vy < -maxSpeed) {
+          state.vy = -maxSpeed;
+        }
         state.y += state.vy * dt;
         if (Math.abs(dy) < 0.5 && Math.abs(state.vy) < 0.05) {
           state.y = state.targetY;

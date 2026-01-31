@@ -17,6 +17,48 @@ const initTitleAnimation = () => {
   window.setInterval(tick, 1200);
 };
 
+const initImageOverlay = () => {
+  let overlay = null;
+  const closeOverlay = () => {
+    if (!overlay) {
+      return;
+    }
+    overlay.remove();
+    overlay = null;
+    document.body.classList.remove("image-overlay-open");
+  };
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      closeOverlay();
+    }
+  });
+
+  SECTION_CONTAINER.addEventListener("click", (event) => {
+    const image = event.target.closest(".section-content--image img");
+    if (!image) {
+      return;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (overlay) {
+      closeOverlay();
+      return;
+    }
+
+    overlay = document.createElement("div");
+    overlay.className = "image-overlay";
+    const overlayImage = document.createElement("img");
+    overlayImage.src = image.src;
+    overlayImage.alt = image.alt || "";
+    overlay.appendChild(overlayImage);
+    overlay.addEventListener("click", closeOverlay);
+    document.body.appendChild(overlay);
+    document.body.classList.add("image-overlay-open");
+  });
+};
+
 // Minimal inline markdown parsing for safe, tiny content blocks.
 const escapeHtml = (value) =>
   value
@@ -301,4 +343,5 @@ const loadSections = async () => {
 };
 
 initTitleAnimation();
+initImageOverlay();
 loadSections();
