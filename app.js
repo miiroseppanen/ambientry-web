@@ -35,10 +35,11 @@ const parseMarkdown = (markdown) => {
 };
 
 // Render a content tile with a slow looping scroll.
-const renderSection = (section, markdown) => {
+const renderSection = (section, markdown, delaySeconds) => {
   const wrapper = document.createElement("section");
   wrapper.className = "section";
   wrapper.id = section.id;
+  wrapper.style.setProperty("--tile-delay", `${delaySeconds}s`);
 
   const scroller = document.createElement("div");
   scroller.className = "section-scroller";
@@ -57,18 +58,20 @@ const renderSection = (section, markdown) => {
 };
 
 // Empty tiles create visual "dashes" in the rhythm.
-const renderEmptySection = (section) => {
+const renderEmptySection = (section, delaySeconds) => {
   const wrapper = document.createElement("section");
   wrapper.className = "section section--empty";
   wrapper.id = section.id;
+  wrapper.style.setProperty("--tile-delay", `${delaySeconds}s`);
   wrapper.setAttribute("aria-hidden", "true");
   return wrapper;
 };
 
 // Errors render as tiles to keep layout consistent.
-const renderError = (message) => {
+const renderError = (message, delaySeconds = 0) => {
   const errorBlock = document.createElement("section");
   errorBlock.className = "section";
+  errorBlock.style.setProperty("--tile-delay", `${delaySeconds}s`);
   errorBlock.innerHTML = `<div class="section-meta"><span>~</span><span>Virhe</span></div><p>${escapeHtml(
     message
   )}</p>`;
@@ -190,10 +193,12 @@ const loadSections = async () => {
     const morseSlots = buildMorseSlots("suomenambientyhdistys");
     let fileIndex = 0;
 
+    const totalSlots = Math.max(morseSlots.length - 1, 1);
     for (const [slotIndex, slot] of morseSlots.entries()) {
+      const delaySeconds = (slotIndex / totalSlots) * 5;
       if (slot === "-") {
         SECTION_CONTAINER.appendChild(
-          renderEmptySection({ id: `empty-${slotIndex}` })
+          renderEmptySection({ id: `empty-${slotIndex}` }, delaySeconds)
         );
         continue;
       }
@@ -220,11 +225,11 @@ const loadSections = async () => {
         const message = label
           ? `Osio "${label}" ei lataudu.`
           : "Osio ei lataudu.";
-        SECTION_CONTAINER.appendChild(renderError(message));
+        SECTION_CONTAINER.appendChild(renderError(message, delaySeconds));
         continue;
       }
       SECTION_CONTAINER.appendChild(
-        renderSection({ id: `section-${fileIndex}` }, markdown)
+        renderSection({ id: `section-${fileIndex}` }, markdown, delaySeconds)
       );
     }
   } catch (error) {
