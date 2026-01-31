@@ -34,6 +34,22 @@ const parseMarkdown = (markdown) => {
   return html;
 };
 
+const parseContent = (markdown) => {
+  const trimmed = markdown.trim();
+  const imageMatch =
+    trimmed.match(/^image:\s*(\S+)/i) ||
+    trimmed.match(/!\[[^\]]*\]\(([^)]+)\)/);
+  if (imageMatch) {
+    const altMatch = trimmed.match(/!\[([^\]]*)\]\(([^)]+)\)/);
+    return {
+      type: "image",
+      src: imageMatch[1],
+      alt: altMatch ? altMatch[1] : "",
+    };
+  }
+  return { type: "text", html: parseMarkdown(markdown) };
+};
+
 // Render a content tile with static content.
 const renderSection = (section, markdown, delaySeconds) => {
   const wrapper = document.createElement("section");
@@ -43,45 +59,175 @@ const renderSection = (section, markdown, delaySeconds) => {
 
   const content = document.createElement("div");
   content.className = "section-content";
-  content.innerHTML = parseMarkdown(markdown);
+  const parsed = parseContent(markdown);
+  if (parsed.type === "image") {
+    content.classList.add("section-content--image");
+    const image = document.createElement("img");
+    image.src = parsed.src;
+    image.alt = parsed.alt;
+    image.loading = "lazy";
+    content.appendChild(image);
+  } else {
+    content.innerHTML = parsed.html;
+  }
 
   wrapper.appendChild(content);
 
-  wrapper.addEventListener("pointerenter", (event) => {
-    if (event.pointerType !== "mouse") {
-      return;
-    }
-    wrapper.classList.add("is-float");
-  });
-
-  wrapper.addEventListener("pointerleave", (event) => {
-    if (event.pointerType !== "mouse") {
-      return;
-    }
-    wrapper.classList.remove("is-float");
-  });
-
-  wrapper.addEventListener("pointerdown", (event) => {
-    if (event.pointerType !== "touch") {
-      return;
-    }
-    wrapper.classList.add("is-float");
-  });
-
-  wrapper.addEventListener("pointerup", (event) => {
-    if (event.pointerType !== "touch") {
-      return;
-    }
-    wrapper.classList.remove("is-float");
-  });
-
-  wrapper.addEventListener("pointercancel", (event) => {
-    if (event.pointerType !== "touch") {
-      return;
-    }
-    wrapper.classList.remove("is-float");
-  });
   return wrapper;
+};
+
+const initPhysics = () => {
+  const container = SECTION_CONTAINER;
+  const tiles = Array.from(container.querySelectorAll(".section"));
+  const containerRect = container.getBoundingClientRect();
+  const states = tiles.map((tile) => {
+    const rect = tile.getBoundingClientRect();
+    const x = rect.left - containerRect.left;
+    const y = rect.top - containerRect.top;
+    const state = {
+      tile,
+      x,
+      y,
+      width: rect.width,
+      height: rect.height,
+      vx: 0,
+      vy: 0,
+      floatSpeed: 8 + Math.random() * 14,
+      dragging: false,
+      dragOffsetX: 0,
+      dragOffsetY: 0,
+    };
+    return state;
+  });
+
+  const maxBottom = Math.max(
+    ...states.map((state) => state.y + state.height),
+    0
+  );
+  container.style.height = `${maxBottom}px`;
+  container.classList.add("is-physics");
+
+  states.forEach((state) => {
+    const { tile, x, y, width, height } = state;
+    tile.style.position = "absolute";
+    tile.style.left = `${x}px`;
+    tile.style.top = `${y}px`;
+    tile.style.width = `${width}px`;
+    tile.style.height = `${height}px`;
+  });
+
+  let lastTime = performance.now();
+  let floatActive = false;
+  let floatTimer = null;
+
+  const clampPosition = (state) => {
+    const maxX = Math.max(container.clientWidth - state.width, 0);
+    const maxY = Math.max(container.clientHeight - state.height, 0);
+    state.x = Math.min(Math.max(state.x, 0), maxX);
+    state.y = Math.min(Math.max(state.y, 0), maxY);
+  };
+
+  const applyPositions = () => {
+    states.forEach((state) => {
+      state.tile.style.left = `${state.x}px`;
+      state.tile.style.top = `${state.y}px`;
+    });
+  };
+
+  const step = (time) => {
+    const dt = Math.min((time - lastTime) / 1000, 0.05);
+    lastTime = time;
+
+    if (floatActive) {
+      states.forEach((state) => {
+        if (state.dragging) {
+          return;
+        }
+        if (state.y <= 0) {
+          state.y = 0;
+          state.vy = 0;
+          return;
+        }
+        state.vy = -state.floatSpeed;
+        state.y += state.vy * dt;
+        if (state.y <= 0) {
+          state.y = 0;
+          state.vy = 0;
+        }
+      });
+    }
+
+    applyPositions();
+    requestAnimationFrame(step);
+  };
+
+  const startFloat = () => {
+    floatActive = true;
+  };
+
+  const stopFloat = () => {
+    floatActive = false;
+  };
+
+  const scheduleFloat = () => {
+    if (floatTimer) {
+      clearTimeout(floatTimer);
+    }
+    floatTimer = setTimeout(() => {
+      startFloat();
+    }, 700);
+  };
+
+  window.addEventListener(
+    "scroll",
+    () => {
+      stopFloat();
+      scheduleFloat();
+    },
+    { passive: true }
+  );
+
+  scheduleFloat();
+
+  states.forEach((state) => {
+    const { tile } = state;
+    tile.addEventListener("pointerdown", (event) => {
+      if (event.pointerType === "mouse" && event.button !== 0) {
+        return;
+      }
+      stopFloat();
+      state.dragging = true;
+      state.tile.classList.add("is-dragging");
+      state.dragOffsetX = event.clientX - state.x;
+      state.dragOffsetY = event.clientY - state.y;
+      tile.setPointerCapture(event.pointerId);
+    });
+
+    tile.addEventListener("pointermove", (event) => {
+      if (!state.dragging) {
+        return;
+      }
+      state.x = event.clientX - state.dragOffsetX;
+      state.y = event.clientY - state.dragOffsetY;
+      clampPosition(state);
+      applyPositions();
+    });
+
+    const endDrag = (event) => {
+      if (!state.dragging) {
+        return;
+      }
+      state.dragging = false;
+      state.tile.classList.remove("is-dragging");
+      tile.releasePointerCapture(event.pointerId);
+      scheduleFloat();
+    };
+
+    tile.addEventListener("pointerup", endDrag);
+    tile.addEventListener("pointercancel", endDrag);
+  });
+
+  requestAnimationFrame(step);
 };
 
 // Empty tiles create visual "dashes" in the rhythm.
@@ -270,7 +416,10 @@ const loadSections = async () => {
     SECTION_CONTAINER.innerHTML = "";
     SECTION_CONTAINER.appendChild(renderError(error.message));
   } finally {
-    requestAnimationFrame(markReady);
+    requestAnimationFrame(() => {
+      markReady();
+      initPhysics();
+    });
   }
 };
 
