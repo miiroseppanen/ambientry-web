@@ -82,18 +82,6 @@ const getInlineIndex = () => {
   }
 };
 
-const getContentSource = () => {
-  const sourceTag = document.getElementById("content-source");
-  if (!sourceTag) {
-    return null;
-  }
-  try {
-    return JSON.parse(sourceTag.textContent);
-  } catch (error) {
-    return null;
-  }
-};
-
 const getInlineMarkdown = (fileName) => {
   const block = document.querySelector(`[data-file="${fileName}"]`);
   if (!block) {
@@ -184,30 +172,7 @@ const loadSections = async () => {
     }
     SECTION_CONTAINER.innerHTML = "";
 
-    let files = [];
-    const source = getContentSource();
-    if (source && source.repo) {
-      try {
-        const branch = source.branch || "main";
-        const response = await fetch(
-          `https://api.github.com/repos/${source.repo}/contents/content?ref=${branch}`
-        );
-        if (response.ok) {
-          const data = await response.json();
-          const listedFiles = Array.isArray(data)
-            ? data
-                .filter((item) => item.type === "file")
-                .map((item) => item.name)
-            : [];
-          files = normalizeFiles(listedFiles);
-        }
-      } catch (error) {
-        files = [];
-      }
-    }
-    if (!files.length) {
-      files = normalizeFiles(indexData ? indexData.files || [] : []);
-    }
+    const files = normalizeFiles(indexData ? indexData.files || [] : []);
     if (!files.length) {
       throw new Error("Sisältöluetteloa ei löytynyt.");
     }
