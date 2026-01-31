@@ -23,9 +23,18 @@ const initImageOverlay = () => {
     if (!overlay) {
       return;
     }
-    overlay.remove();
-    overlay = null;
-    document.body.classList.remove("image-overlay-open");
+    const current = overlay;
+    current.classList.remove("is-open");
+    const finish = () => {
+      if (overlay !== current) {
+        return;
+      }
+      current.remove();
+      overlay = null;
+      document.body.classList.remove("image-overlay-open");
+    };
+    current.addEventListener("transitionend", finish, { once: true });
+    window.setTimeout(finish, 260);
   };
 
   document.addEventListener("keydown", (event) => {
@@ -56,6 +65,11 @@ const initImageOverlay = () => {
     overlay.addEventListener("click", closeOverlay);
     document.body.appendChild(overlay);
     document.body.classList.add("image-overlay-open");
+    requestAnimationFrame(() => {
+      if (overlay) {
+        overlay.classList.add("is-open");
+      }
+    });
   });
 };
 
