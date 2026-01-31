@@ -1,0 +1,19 @@
+{
+  "sections": [
+    {
+      "id": "intro",
+      "title": "Manifesti",
+      "file": "section-intro.md"
+    },
+    {
+      "id": "toiminta",
+      "title": "Toiminta",
+      "file": "section-toiminta.md"
+    },
+    {
+      "id": "jasenyys",
+      "title": "Jäsenyys",
+      "file": "section-jasenyys.md"
+    }
+  ]
+}
