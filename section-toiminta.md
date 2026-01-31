@@ -1,8 +1,1 @@
-# Toiminta
-Yhdistys toimii kevyellä rytmillä. Julkaisemme tekstejä, järjestämme kuuntelupiirejä ja tuomme esiin kotimaista ambient-kulttuuria.
-
-- Kuukausittainen ~ kuunteluilta
-- Pienet julkaisut ja kirjoitukset
-- Paikalliset yhteistyöt
-
-Tilaisuudet ovat avoimia, rauhallisia ja matalan kynnyksen tapahtumia.
+Yhdistys järjestää festivaaleja, tapahtumia ja esityksiä sekä toteuttaa taiteellisia hankkeita yhteistyössä taiteilijoiden, yhteisöjen ja erilaisten ympäristöjen kanssa. Toimintaan kuuluu paikkasidonnaisia teoksia, hajautettuja satelliittitapahtumia, klubitoimintaa, julkaisuja ja muuta ambient-musiikkiin ja kokeelliseen äänitaiteeseen liittyvää toimintaa. Yhdistys tekee yhteistyötä myös valtakunnallisesti ja kansainvälisesti.

@@ -20,43 +20,15 @@ const inlineMarkdown = (value) => {
 const parseMarkdown = (markdown) => {
   const lines = markdown.split(/\r?\n/);
   let html = "";
-  let inList = false;
-
-  const closeList = () => {
-    if (inList) {
-      html += "</ul>";
-      inList = false;
-    }
-  };
 
   lines.forEach((line) => {
-    if (/^#{1,6}\s+/.test(line)) {
-      closeList();
-      const text = inlineMarkdown(line.replace(/^#{1,6}\s+/, ""));
-      html += `<h2>${text}</h2>`;
-      return;
-    }
-
-    if (/^\s*-\s+/.test(line)) {
-      if (!inList) {
-        html += "<ul>";
-        inList = true;
-      }
-      const text = inlineMarkdown(line.replace(/^\s*-\s+/, ""));
-      html += `<li>${text}</li>`;
-      return;
-    }
-
     if (line.trim() === "") {
-      closeList();
       return;
     }
-
-    closeList();
-    html += `<p>${inlineMarkdown(line)}</p>`;
+    const text = inlineMarkdown(line.replace(/^#{1,6}\s+/, ""));
+    html += `<p>${text}</p>`;
   });
 
-  closeList();
   return html;
 };
 
@@ -65,16 +37,19 @@ const renderSection = (section, markdown) => {
   wrapper.className = "section";
   wrapper.id = section.id;
 
-  const heading = document.createElement("div");
-  heading.className = "section-meta";
-  heading.innerHTML = `<span>~</span><span>${escapeHtml(section.title)}</span>`;
-
   const content = document.createElement("div");
   content.className = "section-content";
   content.innerHTML = parseMarkdown(markdown);
 
-  wrapper.appendChild(heading);
   wrapper.appendChild(content);
+  return wrapper;
+};
+
+const renderEmptySection = (section) => {
+  const wrapper = document.createElement("section");
+  wrapper.className = "section section--empty";
+  wrapper.id = section.id;
+  wrapper.setAttribute("aria-hidden", "true");
   return wrapper;
 };
 
@@ -127,6 +102,10 @@ const loadSections = async () => {
     SECTION_CONTAINER.innerHTML = "";
 
     for (const section of manifest.sections) {
+      if (section.type === "empty") {
+        SECTION_CONTAINER.appendChild(renderEmptySection(section));
+        continue;
+      }
       let markdown = null;
       if (section.file) {
         try {
@@ -142,9 +121,11 @@ const loadSections = async () => {
         markdown = getInlineMarkdown(section.id);
       }
       if (!markdown) {
-        SECTION_CONTAINER.appendChild(
-          renderError(`Osio "${section.title}" ei lataudu.`)
-        );
+        const label = section.title || section.file || section.id || "";
+        const message = label
+          ? `Osio "${label}" ei lataudu.`
+          : "Osio ei lataudu.";
+        SECTION_CONTAINER.appendChild(renderError(message));
         continue;
       }
       SECTION_CONTAINER.appendChild(renderSection(section, markdown));

@@ -1,0 +1,1 @@
+Lovi-klubi on osa yhdistyksen jatkuvaa toimintaa. Se tarjoaa säännöllisen esiintymis- ja kohtaamispaikan ambientille ja kokeelliselle musiikille sekä mahdollistaa pienimuotoisemmat esitykset ja kokeilut osana yhdistyksen toimintaa.

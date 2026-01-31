@@ -1,19 +1,59 @@
 {
   "sections": [
     {
-      "id": "intro",
-      "title": "Manifesti",
-      "file": "section-intro.md"
+      "id": "dot-1",
+      "type": "content",
+      "file": "section-yhdistys.md"
     },
     {
-      "id": "toiminta",
-      "title": "Toiminta",
+      "id": "dot-2",
+      "type": "content",
       "file": "section-toiminta.md"
     },
     {
-      "id": "jasenyys",
-      "title": "Jäsenyys",
+      "id": "dot-3",
+      "type": "content",
+      "file": "section-siirtyma.md"
+    },
+    {
+      "id": "dash-1",
+      "type": "empty"
+    },
+    {
+      "id": "dot-4",
+      "type": "content",
+      "file": "section-lovi.md"
+    },
+    {
+      "id": "dash-2",
+      "type": "empty"
+    },
+    {
+      "id": "dash-3",
+      "type": "empty"
+    },
+    {
+      "id": "dot-5",
+      "type": "content",
+      "file": "section-periaate.md"
+    },
+    {
+      "id": "dash-4",
+      "type": "empty"
+    },
+    {
+      "id": "dot-6",
+      "type": "content",
       "file": "section-jasenyys.md"
+    },
+    {
+      "id": "dash-5",
+      "type": "empty"
+    },
+    {
+      "id": "dot-7",
+      "type": "content",
+      "file": "section-yhteys.md"
     }
   ]
 }
