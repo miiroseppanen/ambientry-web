@@ -85,13 +85,20 @@ const initPhysics = () => {
     const x = rect.left - containerRect.left;
     const y = rect.top - containerRect.top;
     const content = tile.querySelector(".section-content");
+    const styles = getComputedStyle(tile);
+    const paddingTop = Number.parseFloat(styles.paddingTop) || 0;
+    const paddingBottom = Number.parseFloat(styles.paddingBottom) || 0;
+    const contentHeight = content ? content.scrollHeight : rect.height;
+    const height = Math.max(rect.height, contentHeight + paddingTop + paddingBottom);
+    const image = content ? content.querySelector("img") : null;
     const state = {
       tile,
       content,
+      image,
       x,
       y,
       width: rect.width,
-      height: rect.height,
+      height,
       vx: 0,
       vy: 0,
       floatSpeed: 4 + Math.random() * 8,
@@ -101,6 +108,9 @@ const initPhysics = () => {
       lastMoveX: 0,
       lastMoveY: 0,
       lastMoveTime: 0,
+      targetY: y,
+      paddingTop,
+      paddingBottom,
     };
     return state;
   });
@@ -112,6 +122,18 @@ const initPhysics = () => {
   container.style.height = `${maxBottom}px`;
   container.classList.add("is-physics");
 
+  const updateTileHeight = (state) => {
+    const contentHeight = state.content ? state.content.scrollHeight : state.height;
+    const nextHeight = Math.max(
+      state.height,
+      contentHeight + state.paddingTop + state.paddingBottom
+    );
+    if (nextHeight !== state.height) {
+      state.height = nextHeight;
+      state.tile.style.height = `${state.height}px`;
+    }
+  };
+
   states.forEach((state) => {
     const { tile, x, y, width, height } = state;
     tile.style.position = "absolute";
@@ -119,6 +141,19 @@ const initPhysics = () => {
     tile.style.top = `${y}px`;
     tile.style.width = `${width}px`;
     tile.style.height = `${height}px`;
+    if (state.image) {
+      if (state.image.complete) {
+        updateTileHeight(state);
+      } else {
+        state.image.addEventListener(
+          "load",
+          () => {
+            updateTileHeight(state);
+          },
+          { once: true }
+        );
+      }
+    }
   });
 
   let lastTime = performance.now();
@@ -137,6 +172,16 @@ const initPhysics = () => {
       state.tile.style.left = `${state.x}px`;
       state.tile.style.top = `${state.y}px`;
     });
+  };
+
+  const computeStackTargets = () => {
+    const sorted = [...states].sort((a, b) => a.y - b.y);
+    let cursorY = 0;
+    sorted.forEach((state) => {
+      state.targetY = cursorY;
+      cursorY += state.height + 8;
+    });
+    container.style.height = `${Math.max(cursorY, container.clientHeight)}px`;
   };
 
   const isMobileLayout = () =>
@@ -165,23 +210,13 @@ const initPhysics = () => {
     lastTime = time;
 
     if (floatActive) {
+      computeStackTargets();
       states.forEach((state) => {
         if (state.dragging) {
           return;
         }
-        if (state.y <= 0) {
-          state.y = 0;
-          state.vy = 0;
-          return;
-        }
-        const targetVy = -state.floatSpeed;
-        const ease = 1 - Math.pow(0.2, dt * 60);
-        state.vy += (targetVy - state.vy) * ease;
-        state.y += state.vy * dt;
-        if (state.y <= 0) {
-          state.y = 0;
-          state.vy = 0;
-        }
+        const ease = 1 - Math.pow(0.15, dt * 60);
+        state.y += (state.targetY - state.y) * ease;
       });
     }
 
