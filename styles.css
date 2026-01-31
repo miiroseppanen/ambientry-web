@@ -213,6 +213,10 @@ body.is-ready .site-footer {
 }
 
 @media (max-width: 420px) {
+  body {
+    padding: 16px;
+  }
+
   .sections {
     grid-template-columns: 1fr;
     gap: 10px;
