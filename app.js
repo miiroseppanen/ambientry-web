@@ -54,6 +54,86 @@ const renderSection = (section, markdown, delaySeconds) => {
   scroller.appendChild(content);
   scroller.appendChild(clone);
   wrapper.appendChild(scroller);
+
+  const jumpToPointer = (event) => {
+    const rect = wrapper.getBoundingClientRect();
+    const scrollerRect = scroller.getBoundingClientRect();
+    const offsetY = event.clientY - rect.top;
+    const scrollerHeight = Math.max(scrollerRect.height, 1);
+    const progress = ((2 * offsetY) / scrollerHeight) % 1;
+    const rawDuration = getComputedStyle(scroller)
+      .getPropertyValue("--scroll-duration")
+      .trim();
+    const duration = Number.parseFloat(rawDuration) || 160;
+    scroller.style.animation = "none";
+    scroller.style.animationDelay = `-${progress * duration}s`;
+    requestAnimationFrame(() => {
+      scroller.style.animation = "";
+    });
+  };
+
+  let hoverPending = false;
+  let lastHoverEvent = null;
+
+  const scheduleHoverJump = () => {
+    if (hoverPending || !lastHoverEvent) {
+      return;
+    }
+    hoverPending = true;
+    requestAnimationFrame(() => {
+      hoverPending = false;
+      if (lastHoverEvent) {
+        jumpToPointer(lastHoverEvent);
+      }
+    });
+  };
+
+  wrapper.addEventListener("pointerenter", (event) => {
+    if (event.pointerType !== "mouse") {
+      return;
+    }
+    lastHoverEvent = event;
+    wrapper.classList.add("is-boosted");
+    scheduleHoverJump();
+  });
+
+  wrapper.addEventListener("pointermove", (event) => {
+    if (event.pointerType !== "mouse") {
+      return;
+    }
+    lastHoverEvent = event;
+    scheduleHoverJump();
+  });
+
+  wrapper.addEventListener("pointerleave", (event) => {
+    if (event.pointerType !== "mouse") {
+      return;
+    }
+    lastHoverEvent = null;
+    wrapper.classList.remove("is-boosted");
+  });
+
+  wrapper.addEventListener("pointerdown", (event) => {
+    if (event.pointerType !== "touch") {
+      return;
+    }
+    wrapper.classList.add("is-boosted");
+    jumpToPointer(event);
+  });
+
+  wrapper.addEventListener("pointerup", (event) => {
+    if (event.pointerType !== "touch") {
+      return;
+    }
+    wrapper.classList.remove("is-boosted");
+  });
+
+  wrapper.addEventListener("pointercancel", (event) => {
+    if (event.pointerType !== "touch") {
+      return;
+    }
+    wrapper.classList.remove("is-boosted");
+  });
   return wrapper;
 };
 

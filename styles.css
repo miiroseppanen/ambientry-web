@@ -122,9 +122,8 @@ body.is-ready .section {
   transition: --scroll-duration 0.6s ease;
 }
 
-/* Speed up scroll while hovering/pressing a tile. */
-.section:hover .section-scroller,
-.section:active .section-scroller {
+/* Speed up scroll while hover/press is active. */
+.section.is-boosted .section-scroller {
   --scroll-duration: 53.333s;
 }
 
