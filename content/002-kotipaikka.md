@@ -1,0 +1,1 @@
+Yhdistyksen kotipaikka on Tampere.
