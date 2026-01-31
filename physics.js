@@ -17,7 +17,7 @@ const initPhysics = (container) => {
     const baseHeight =
       contentHeight > 0 ? contentHeight + paddingTop + paddingBottom : rect.height;
     const image = content ? content.querySelector("img") : null;
-    const height = image ? Math.max(rect.width, 1) : Math.max(baseHeight, 1);
+    const height = Math.max(baseHeight, 1);
     const state = {
       tile,
       content,
@@ -53,15 +53,6 @@ const initPhysics = (container) => {
   container.classList.add("is-physics");
 
   function updateTileHeight(state) {
-    if (state.image) {
-      const rect = state.tile.getBoundingClientRect();
-      const nextHeight = Math.max(rect.width || state.width, 1);
-      if (nextHeight !== state.height) {
-        state.height = nextHeight;
-        state.tile.style.height = `${state.height}px`;
-      }
-      return;
-    }
     const contentHeight = state.content
       ? Math.max(
           state.content.scrollHeight,
@@ -110,6 +101,11 @@ const initPhysics = (container) => {
     container.style.height = `${Math.max(maxBottom, container.clientHeight)}px`;
   };
 
+  let lastTime = performance.now();
+  let floatActive = false;
+  let floatTimer = null;
+  let suppressScroll = false;
+
   states.forEach((state) => {
     const { tile, x, y, width, height } = state;
     tile.style.position = "absolute";
@@ -137,11 +133,6 @@ const initPhysics = (container) => {
       }
     }
   });
-
-  let lastTime = performance.now();
-  let floatActive = false;
-  let floatTimer = null;
-  let suppressScroll = false;
 
   const clampPosition = (state) => {
     const maxX = Math.max(container.clientWidth - state.width, 0);

@@ -129,11 +129,7 @@ body.is-loading .section {
 }
 
 .section-content--image {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  pointer-events: auto;
+  display: block;
 }
 
 .section-content--image img {

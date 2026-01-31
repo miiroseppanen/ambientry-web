@@ -19,3 +19,5 @@ Suomen Ambientyhdistys **~**
 ## Käyttö
 - Avaa `index.html` selaimessa tai tarjoa tiedostot kevyellä HTTP-palvelimella.
 - Inline-sisältö `index.html`-tiedostossa toimii fallbackina ilman palvelinta.
+- Kuvien ja `content/index.json`-tiedoston takia suosittelemme HTTP-palvelinta:
+  - `python3 -m http.server 8000` ja avaa `http://localhost:8000`.
