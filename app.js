@@ -1,5 +1,7 @@
+// App: build the grid from content files and apply morse rhythm.
 const SECTION_CONTAINER = document.getElementById("sections");
 
+// Minimal inline markdown parsing for safe, tiny content blocks.
 const escapeHtml = (value) =>
   value
     .replace(/&/g, "&amp;")
@@ -32,6 +34,7 @@ const parseMarkdown = (markdown) => {
   return html;
 };
 
+// Render a content tile with a slow looping scroll.
 const renderSection = (section, markdown) => {
   const wrapper = document.createElement("section");
   wrapper.className = "section";
@@ -53,6 +56,7 @@ const renderSection = (section, markdown) => {
   return wrapper;
 };
 
+// Empty tiles create visual "dashes" in the rhythm.
 const renderEmptySection = (section) => {
   const wrapper = document.createElement("section");
   wrapper.className = "section section--empty";
@@ -61,6 +65,7 @@ const renderEmptySection = (section) => {
   return wrapper;
 };
 
+// Errors render as tiles to keep layout consistent.
 const renderError = (message) => {
   const errorBlock = document.createElement("section");
   errorBlock.className = "section";
@@ -70,6 +75,7 @@ const renderError = (message) => {
   return errorBlock;
 };
 
+// Inline fallback for file:// or missing fetch.
 const getInlineIndex = () => {
   const indexTag = document.getElementById("content-index");
   if (!indexTag) {
@@ -90,6 +96,7 @@ const getInlineMarkdown = (fileName) => {
   return block.textContent.trim();
 };
 
+// Morse rhythm builder for "suomenambientyhdistys".
 const MORSE_MAP = {
   a: ".-",
   b: "-...",
@@ -135,6 +142,7 @@ const buildMorseSlots = (word) => {
   return slots;
 };
 
+// Sort by three-digit prefix, then alphabetically.
 const normalizeFiles = (files) =>
   files
     .filter((file) => typeof file === "string" && file.endsWith(".md"))
@@ -153,9 +161,11 @@ const normalizeFiles = (files) =>
       return first.localeCompare(second);
     });
 
+// Allow short names in the index file.
 const buildFilePath = (fileName) =>
   fileName.startsWith("content/") ? fileName : `content/${fileName}`;
 
+// Main loader: fetch index, map content to rhythm, render tiles.
 const loadSections = async () => {
   try {
     let indexData = null;

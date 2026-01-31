@@ -1,3 +1,4 @@
+/* Global reset + single-font brutalist base. */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -8,6 +9,7 @@
   color-scheme: only light;
 }
 
+/* Overall page layout and neutral gray background. */
 body {
   font-family: "Times New Roman", Times, serif;
   font-size: 16px;
@@ -67,6 +69,7 @@ code {
   font-weight: normal;
 }
 
+/* Grid tiles with square cells on desktop. */
 .sections {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -75,6 +78,7 @@ code {
   grid-auto-flow: dense;
 }
 
+/* Each tile is a square viewport for scrolling content. */
 .section {
   padding: 16px;
   display: flex;
@@ -90,6 +94,7 @@ code {
   min-height: 0;
 }
 
+/* Continuous slow scroll loop with a full-tile gap. */
 .section-scroller {
   display: flex;
   flex-direction: column;
@@ -97,6 +102,7 @@ code {
   animation: slow-scroll 160s linear infinite;
 }
 
+/* Content block, padded to create the looping gap. */
 .section-content {
   column-count: 1;
   column-gap: 0;
@@ -107,6 +113,7 @@ code {
   padding-top: 0;
 }
 
+/* Prompter-like slow movement. */
 @keyframes slow-scroll {
   from {
     transform: translateY(0);
