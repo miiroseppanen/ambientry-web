@@ -111,6 +111,7 @@ const initPhysics = () => {
       targetY: y,
       paddingTop,
       paddingBottom,
+      stackIndex: 0,
     };
     return state;
   });
@@ -175,7 +176,7 @@ const initPhysics = () => {
   };
 
   const computeStackTargets = () => {
-    const sorted = [...states].sort((a, b) => a.y - b.y);
+    const sorted = [...states].sort((a, b) => a.stackIndex - b.stackIndex);
     let cursorY = 0;
     sorted.forEach((state) => {
       state.targetY = cursorY;
@@ -210,13 +211,20 @@ const initPhysics = () => {
     lastTime = time;
 
     if (floatActive) {
-      computeStackTargets();
       states.forEach((state) => {
         if (state.dragging) {
           return;
         }
-        const ease = 1 - Math.pow(0.15, dt * 60);
-        state.y += (state.targetY - state.y) * ease;
+        const dy = state.targetY - state.y;
+        const stiffness = 10;
+        const damping = Math.pow(0.25, dt * 60);
+        state.vy += dy * stiffness * dt;
+        state.vy *= damping;
+        state.y += state.vy * dt;
+        if (Math.abs(dy) < 0.5 && Math.abs(state.vy) < 0.05) {
+          state.y = state.targetY;
+          state.vy = 0;
+        }
       });
     }
 
@@ -249,6 +257,10 @@ const initPhysics = () => {
   };
 
   const startFloat = () => {
+    states.forEach((state) => {
+      state.stackIndex = state.y;
+    });
+    computeStackTargets();
     floatActive = true;
   };
 
@@ -525,9 +537,7 @@ const loadSections = async () => {
   } finally {
     requestAnimationFrame(() => {
       markReady();
-      if (!isMobileLayout()) {
-        initPhysics();
-      }
+      initPhysics();
     });
   }
 };
