@@ -129,14 +129,19 @@ body.is-loading .section {
 }
 
 .section-content--image {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 0;
+  pointer-events: auto;
 }
 
 .section-content--image img {
   width: 100%;
-  height: auto;
+  height: 100%;
   display: block;
-  object-fit: contain;
+  object-fit: cover;
   filter: grayscale(100%);
   transition: filter 0.4s ease;
 }
@@ -146,7 +151,7 @@ body.is-loading .section {
 }
 
 .section--image {
-  padding: 16px;
+  padding: 0;
 }
 
 /* Helium bobbing motion. */
