@@ -9,12 +9,6 @@
   color-scheme: only light;
 }
 
-@property --scroll-duration {
-  syntax: "<time>";
-  inherits: true;
-  initial-value: 160s;
-}
-
 /* Overall page layout and neutral gray background. */
 body {
   font-family: "Times New Roman", Times, serif;
@@ -93,20 +87,13 @@ code {
   min-height: 0;
   aspect-ratio: 1 / 1;
   overflow: hidden;
-  opacity: 0;
-  transform: translateY(18%);
   position: relative;
+  transition: transform 0.6s ease;
 }
 
 /* Hide tiles until JS finishes hydration. */
 body.is-loading .section {
-  animation: none;
-  opacity: 0;
-}
-
-body.is-ready .section {
-  animation: tile-fade 4s ease forwards;
-  animation-delay: var(--tile-delay, 0s);
+  opacity: 1;
 }
 
 .section--empty {
@@ -114,75 +101,25 @@ body.is-ready .section {
   min-height: 0;
 }
 
-/* Continuous slow scroll loop with a full-tile gap. */
-.section-scroller {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  --scroll-duration: 160s;
-  animation: slow-scroll var(--scroll-duration) linear infinite;
-  transition: --scroll-duration 0.6s ease;
-}
-
-/* Soft mask at top and bottom so text emerges. */
-.section::before,
-.section::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 15px;
-  pointer-events: none;
-  z-index: 2;
-  background: linear-gradient(to bottom, rgba(158, 158, 158, 0) 0%, #9e9e9e 100%);
-}
-
-.section::after {
-  top: auto;
-  bottom: 0;
-  background: linear-gradient(to top, rgba(158, 158, 158, 0) 0%, #9e9e9e 100%);
-}
-
-/* Freeze scroll and show top on hover. */
-.section.is-hovered .section-scroller {
-  animation: none;
-  transform: translateY(0);
-}
-
-/* Speed up scroll while press is active. */
-.section.is-boosted .section-scroller {
-  --scroll-duration: 53.333s;
+/* Helium-like hover/press float. */
+.section.is-float {
+  transform: translateY(-8px);
+  animation: helium-bob 3.5s ease-in-out infinite;
 }
 
 /* Content block, padded to create the looping gap. */
 .section-content {
   column-count: 1;
   column-gap: 0;
-  padding-bottom: 100%;
 }
 
-.section-content--clone {
-  padding-top: 0;
-}
-
-/* Prompter-like slow movement. */
-@keyframes slow-scroll {
+/* Helium bobbing motion. */
+@keyframes helium-bob {
   from {
-    transform: translateY(0);
+    transform: translateY(-6px);
   }
   to {
-    transform: translateY(-50%);
-  }
-}
-
-@keyframes tile-fade {
-  from {
-    opacity: 0;
-    transform: translateY(18%);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+    transform: translateY(-10px);
   }
 }
 
@@ -258,14 +195,9 @@ body.is-ready .site-footer {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .section-scroller {
+  .section {
     animation: none;
-  }
-
-  .section,
-  body.is-ready .section {
-    animation: none;
-    opacity: 1;
+    transform: none;
   }
 
   .site-footer {

@@ -34,76 +34,52 @@ const parseMarkdown = (markdown) => {
   return html;
 };
 
-// Render a content tile with a slow looping scroll.
+// Render a content tile with static content.
 const renderSection = (section, markdown, delaySeconds) => {
   const wrapper = document.createElement("section");
   wrapper.className = "section";
   wrapper.id = section.id;
   wrapper.style.setProperty("--tile-delay", `${delaySeconds}s`);
 
-  const scroller = document.createElement("div");
-  scroller.className = "section-scroller";
-
   const content = document.createElement("div");
   content.className = "section-content";
   content.innerHTML = parseMarkdown(markdown);
 
-  const clone = content.cloneNode(true);
-  clone.classList.add("section-content--clone");
-
-  scroller.appendChild(content);
-  scroller.appendChild(clone);
-  wrapper.appendChild(scroller);
-
-  const jumpToPointer = (event) => {
-    const rect = wrapper.getBoundingClientRect();
-    const offsetY = Math.min(Math.max(event.clientY - rect.top, 0), rect.height);
-    const progress = rect.height > 0 ? offsetY / rect.height : 0;
-    const rawDuration = getComputedStyle(scroller)
-      .getPropertyValue("--scroll-duration")
-      .trim();
-    const duration = Number.parseFloat(rawDuration) || 160;
-    scroller.style.animation = "none";
-    scroller.style.animationDelay = `-${progress * duration}s`;
-    requestAnimationFrame(() => {
-      scroller.style.animation = "";
-    });
-  };
+  wrapper.appendChild(content);
 
   wrapper.addEventListener("pointerenter", (event) => {
     if (event.pointerType !== "mouse") {
       return;
     }
-    wrapper.classList.add("is-hovered");
+    wrapper.classList.add("is-float");
   });
 
   wrapper.addEventListener("pointerleave", (event) => {
     if (event.pointerType !== "mouse") {
       return;
     }
-    wrapper.classList.remove("is-hovered");
+    wrapper.classList.remove("is-float");
   });
 
   wrapper.addEventListener("pointerdown", (event) => {
     if (event.pointerType !== "touch") {
       return;
     }
-    wrapper.classList.add("is-boosted");
-    jumpToPointer(event);
+    wrapper.classList.add("is-float");
   });
 
   wrapper.addEventListener("pointerup", (event) => {
     if (event.pointerType !== "touch") {
       return;
     }
-    wrapper.classList.remove("is-boosted");
+    wrapper.classList.remove("is-float");
   });
 
   wrapper.addEventListener("pointercancel", (event) => {
     if (event.pointerType !== "touch") {
       return;
     }
-    wrapper.classList.remove("is-boosted");
+    wrapper.classList.remove("is-float");
   });
   return wrapper;
 };
