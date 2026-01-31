@@ -88,7 +88,16 @@ code {
   aspect-ratio: 1 / 1;
   overflow: hidden;
   opacity: 0;
-  animation: tile-fade 5s ease forwards;
+}
+
+/* Hide tiles until JS finishes hydration. */
+body.is-loading .section {
+  animation: none;
+  opacity: 0;
+}
+
+body.is-ready .section {
+  animation: tile-fade 7s ease forwards;
   animation-delay: var(--tile-delay, 0s);
 }
 
@@ -174,7 +183,8 @@ code {
     animation: none;
   }
 
-  .section {
+  .section,
+  body.is-ready .section {
     animation: none;
     opacity: 1;
   }

@@ -170,6 +170,11 @@ const buildFilePath = (fileName) =>
 
 // Main loader: fetch index, map content to rhythm, render tiles.
 const loadSections = async () => {
+  const markReady = () => {
+    document.body.classList.remove("is-loading");
+    document.body.classList.add("is-ready");
+  };
+
   try {
     let indexData = null;
     try {
@@ -195,7 +200,7 @@ const loadSections = async () => {
 
     const totalSlots = Math.max(morseSlots.length - 1, 1);
     for (const [slotIndex, slot] of morseSlots.entries()) {
-      const delaySeconds = (slotIndex / totalSlots) * 5;
+      const delaySeconds = 3 + (slotIndex / totalSlots) * 4;
       if (slot === "-") {
         SECTION_CONTAINER.appendChild(
           renderEmptySection({ id: `empty-${slotIndex}` }, delaySeconds)
@@ -235,6 +240,8 @@ const loadSections = async () => {
   } catch (error) {
     SECTION_CONTAINER.innerHTML = "";
     SECTION_CONTAINER.appendChild(renderError(error.message));
+  } finally {
+    requestAnimationFrame(markReady);
   }
 };
 
