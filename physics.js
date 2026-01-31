@@ -180,6 +180,7 @@ const initPhysics = (container) => {
   const step = (time) => {
     const dt = Math.min((time - lastTime) / 1000, 0.05);
     lastTime = time;
+    const mobileLayout = isMobileLayout();
 
     if (floatActive) {
       states.forEach((state) => {
@@ -187,8 +188,8 @@ const initPhysics = (container) => {
           return;
         }
         const dy = state.targetY - state.y;
-        const stiffness = 6;
-        const damping = Math.pow(0.35, dt * 60);
+        const stiffness = mobileLayout ? 3 : 6;
+        const damping = Math.pow(mobileLayout ? 0.25 : 0.35, dt * 60);
         state.vy += dy * stiffness * dt;
         state.vy *= damping;
         state.y += state.vy * dt;
@@ -219,7 +220,7 @@ const initPhysics = (container) => {
       clampPosition(state);
     });
 
-    if (isMobileLayout() && !floatActive) {
+    if (mobileLayout && !floatActive) {
       resolveOverlaps();
     }
 
