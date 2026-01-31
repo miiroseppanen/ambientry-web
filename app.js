@@ -182,8 +182,9 @@ const initPhysics = () => {
     const sorted = [...states].sort((a, b) => a.stackIndex - b.stackIndex);
     let cursorY = 0;
     sorted.forEach((state) => {
-      state.targetY = cursorY;
-      cursorY += state.height + 8;
+      const nextTarget = cursorY;
+      state.targetY = Math.min(state.y, nextTarget);
+      cursorY = state.targetY + state.height + 8;
     });
     container.style.height = `${Math.max(cursorY, container.clientHeight)}px`;
   };
