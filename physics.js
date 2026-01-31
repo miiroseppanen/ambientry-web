@@ -16,8 +16,8 @@ const initPhysics = (container) => {
     const contentHeight = content ? content.scrollHeight : 0;
     const baseHeight =
       contentHeight > 0 ? contentHeight + paddingTop + paddingBottom : rect.height;
-    const height = Math.max(baseHeight, 1);
     const image = content ? content.querySelector("img") : null;
+    const height = image ? Math.max(rect.width, 1) : Math.max(baseHeight, 1);
     const state = {
       tile,
       content,
@@ -53,6 +53,15 @@ const initPhysics = (container) => {
   container.classList.add("is-physics");
 
   function updateTileHeight(state) {
+    if (state.image) {
+      const rect = state.tile.getBoundingClientRect();
+      const nextHeight = Math.max(rect.width || state.width, 1);
+      if (nextHeight !== state.height) {
+        state.height = nextHeight;
+        state.tile.style.height = `${state.height}px`;
+      }
+      return;
+    }
     const contentHeight = state.content
       ? Math.max(
           state.content.scrollHeight,

@@ -61,6 +61,7 @@ const renderSection = (section, markdown, delaySeconds) => {
   content.className = "section-content";
   const parsed = parseContent(markdown);
   if (parsed.type === "image") {
+    wrapper.classList.add("section--image");
     content.classList.add("section-content--image");
     const image = document.createElement("img");
     image.src = parsed.src;
@@ -164,10 +165,15 @@ const buildMorseSlots = (word) => {
   return slots;
 };
 
+const isImageFile = (fileName) => /\.(jpe?g|png|webp|gif)$/i.test(fileName);
+
 // Sort by three-digit prefix, then alphabetically.
 const normalizeFiles = (files) =>
   files
-    .filter((file) => typeof file === "string" && file.endsWith(".md"))
+    .filter(
+      (file) =>
+        typeof file === "string" && (file.endsWith(".md") || isImageFile(file))
+    )
     .map((file) => file.trim())
     .filter(Boolean)
     .sort((first, second) => {
@@ -237,13 +243,17 @@ const loadSections = async () => {
       fileIndex += 1;
 
       let markdown = null;
-      try {
-        const sectionResponse = await fetch(buildFilePath(fileName));
-        if (sectionResponse.ok) {
-          markdown = await sectionResponse.text();
+      if (isImageFile(fileName)) {
+        markdown = `image: ${buildFilePath(fileName)}`;
+      } else {
+        try {
+          const sectionResponse = await fetch(buildFilePath(fileName));
+          if (sectionResponse.ok) {
+            markdown = await sectionResponse.text();
+          }
+        } catch (error) {
+          markdown = null;
         }
-      } catch (error) {
-        markdown = null;
       }
       if (!markdown) {
         markdown = getInlineMarkdown(fileName);
