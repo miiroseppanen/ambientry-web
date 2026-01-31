@@ -57,10 +57,8 @@ const renderSection = (section, markdown, delaySeconds) => {
 
   const jumpToPointer = (event) => {
     const rect = wrapper.getBoundingClientRect();
-    const scrollerRect = scroller.getBoundingClientRect();
-    const offsetY = event.clientY - rect.top;
-    const scrollerHeight = Math.max(scrollerRect.height, 1);
-    const progress = ((2 * offsetY) / scrollerHeight) % 1;
+    const offsetY = Math.min(Math.max(event.clientY - rect.top, 0), rect.height);
+    const progress = rect.height > 0 ? offsetY / rect.height : 0;
     const rawDuration = getComputedStyle(scroller)
       .getPropertyValue("--scroll-duration")
       .trim();
