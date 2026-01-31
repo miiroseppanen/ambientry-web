@@ -9,6 +9,12 @@
   color-scheme: only light;
 }
 
+@property --scroll-duration {
+  syntax: "<time>";
+  inherits: true;
+  initial-value: 160s;
+}
+
 /* Overall page layout and neutral gray background. */
 body {
   font-family: "Times New Roman", Times, serif;
@@ -111,7 +117,15 @@ body.is-ready .section {
   display: flex;
   flex-direction: column;
   gap: 0;
-  animation: slow-scroll 160s linear infinite;
+  --scroll-duration: 160s;
+  animation: slow-scroll var(--scroll-duration) linear infinite;
+  transition: --scroll-duration 0.6s ease;
+}
+
+/* Speed up scroll while hovering/pressing a tile. */
+.section:hover .section-scroller,
+.section:active .section-scroller {
+  --scroll-duration: 53.333s;
 }
 
 /* Content block, padded to create the looping gap. */
@@ -189,12 +203,24 @@ body.is-ready .site-footer {
 
 @media (max-width: 600px) {
   body {
+    font-size: 15px;
     padding: 8px;
   }
 
   .sections {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 12px;
+  }
+}
+
+@media (max-width: 420px) {
+  .sections {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .section {
+    padding: 12px;
   }
 }
 
