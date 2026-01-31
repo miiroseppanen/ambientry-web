@@ -80,7 +80,7 @@ const initPhysics = () => {
   const container = SECTION_CONTAINER;
   const tiles = Array.from(container.querySelectorAll(".section"));
   const containerRect = container.getBoundingClientRect();
-  const states = tiles.map((tile) => {
+  const states = tiles.map((tile, index) => {
     const rect = tile.getBoundingClientRect();
     const x = rect.left - containerRect.left;
     const y = rect.top - containerRect.top;
@@ -88,8 +88,10 @@ const initPhysics = () => {
     const styles = getComputedStyle(tile);
     const paddingTop = Number.parseFloat(styles.paddingTop) || 0;
     const paddingBottom = Number.parseFloat(styles.paddingBottom) || 0;
-    const contentHeight = content ? content.scrollHeight : rect.height;
-    const height = Math.max(rect.height, contentHeight + paddingTop + paddingBottom);
+    const contentHeight = content ? content.scrollHeight : 0;
+    const baseHeight =
+      contentHeight > 0 ? contentHeight + paddingTop + paddingBottom : rect.height;
+    const height = Math.max(baseHeight, 1);
     const image = content ? content.querySelector("img") : null;
     const state = {
       tile,
@@ -99,6 +101,8 @@ const initPhysics = () => {
       y,
       width: rect.width,
       height,
+      order: index,
+      columnIndex: 0,
       vx: 0,
       vy: 0,
       floatSpeed: 4 + Math.random() * 8,
@@ -109,6 +113,7 @@ const initPhysics = () => {
       lastMoveY: 0,
       lastMoveTime: 0,
       startY: y,
+      targetY: y,
       paddingTop,
       paddingBottom,
     };
@@ -122,18 +127,53 @@ const initPhysics = () => {
   container.style.height = `${maxBottom}px`;
   container.classList.add("is-physics");
 
-  const updateTileHeight = (state) => {
+  function updateTileHeight(state) {
     const contentHeight = state.content
-      ? Math.max(state.content.scrollHeight, state.content.getBoundingClientRect().height)
-      : state.height;
-    const nextHeight = Math.max(
-      state.height,
-      contentHeight + state.paddingTop + state.paddingBottom
-    );
-    if (nextHeight !== state.height) {
+      ? Math.max(
+          state.content.scrollHeight,
+          state.content.getBoundingClientRect().height
+        )
+      : 0;
+    const nextHeight = contentHeight + state.paddingTop + state.paddingBottom;
+    if (nextHeight > 0 && nextHeight !== state.height) {
       state.height = nextHeight;
       state.tile.style.height = `${state.height}px`;
     }
+  }
+
+  const assignColumns = () => {
+    const avgWidth =
+      states.reduce((sum, state) => sum + state.width, 0) /
+      Math.max(states.length, 1);
+    const gap = 24;
+    const columnWidth = avgWidth + gap;
+    states.forEach((state) => {
+      state.columnIndex = columnWidth > 0 ? Math.round(state.x / columnWidth) : 0;
+    });
+  };
+
+  const computeTargets = () => {
+    states.forEach(updateTileHeight);
+    assignColumns();
+    const columns = new Map();
+    states.forEach((state) => {
+      if (!columns.has(state.columnIndex)) {
+        columns.set(state.columnIndex, []);
+      }
+      columns.get(state.columnIndex).push(state);
+    });
+
+    let maxBottom = 0;
+    columns.forEach((columnStates) => {
+      columnStates.sort((a, b) => a.order - b.order);
+      let cursorY = 0;
+      columnStates.forEach((state) => {
+        state.targetY = cursorY;
+        cursorY += state.height + 8;
+      });
+      maxBottom = Math.max(maxBottom, cursorY);
+    });
+    container.style.height = `${Math.max(maxBottom, container.clientHeight)}px`;
   };
 
   states.forEach((state) => {
@@ -146,11 +186,17 @@ const initPhysics = () => {
     if (state.image) {
       if (state.image.complete) {
         updateTileHeight(state);
+        if (floatActive) {
+          computeStackTargets();
+        }
       } else {
         state.image.addEventListener(
           "load",
           () => {
             updateTileHeight(state);
+            if (floatActive) {
+              computeStackTargets();
+            }
           },
           { once: true }
         );
@@ -161,6 +207,7 @@ const initPhysics = () => {
   let lastTime = performance.now();
   let floatActive = false;
   let floatTimer = null;
+  let suppressScroll = false;
 
   const clampPosition = (state) => {
     const maxX = Math.max(container.clientWidth - state.width, 0);
@@ -176,19 +223,13 @@ const initPhysics = () => {
     });
   };
 
-  const resolveStacking = () => {
-    const sorted = [...states].sort((a, b) => a.y - b.y);
-    let cursorY = 0;
-    sorted.forEach((state) => {
-      const shouldClamp = state.y < cursorY && state.y < state.startY;
-      if (shouldClamp) {
-        state.y = cursorY;
-        state.vy = 0;
-      }
-      cursorY = state.y + state.height + 8;
+  function computeStackTargets() {
+    computeTargets();
+    suppressScroll = true;
+    requestAnimationFrame(() => {
+      suppressScroll = false;
     });
-    container.style.height = `${Math.max(cursorY, container.clientHeight)}px`;
-  };
+  }
 
   const isMobileLayout = () =>
     window.matchMedia("(max-width: 600px)").matches;
@@ -216,26 +257,21 @@ const initPhysics = () => {
     lastTime = time;
 
     if (floatActive) {
-      states.forEach(updateTileHeight);
       states.forEach((state) => {
         if (state.dragging) {
           return;
         }
-        if (state.y <= 0) {
-          state.y = 0;
-          state.vy = 0;
-          return;
-        }
-        const targetVy = -state.floatSpeed;
-        const ease = 1 - Math.pow(0.2, dt * 60);
-        state.vy += (targetVy - state.vy) * ease;
+        const dy = state.targetY - state.y;
+        const stiffness = 6;
+        const damping = Math.pow(0.35, dt * 60);
+        state.vy += dy * stiffness * dt;
+        state.vy *= damping;
         state.y += state.vy * dt;
-        if (state.y < 0) {
-          state.y = 0;
+        if (Math.abs(dy) < 0.5 && Math.abs(state.vy) < 0.05) {
+          state.y = state.targetY;
           state.vy = 0;
         }
       });
-      resolveStacking();
     }
 
     states.forEach((state) => {
@@ -258,7 +294,7 @@ const initPhysics = () => {
       clampPosition(state);
     });
 
-    if (isMobileLayout()) {
+    if (isMobileLayout() && !floatActive) {
       resolveOverlaps();
     }
 
@@ -270,11 +306,17 @@ const initPhysics = () => {
     states.forEach((state) => {
       state.startY = state.y;
     });
+    states.forEach(updateTileHeight);
+    computeStackTargets();
     floatActive = true;
   };
 
   const stopFloat = () => {
     floatActive = false;
+    states.forEach((state) => {
+      state.vx = 0;
+      state.vy = 0;
+    });
   };
 
   const scheduleFloat = () => {
@@ -289,6 +331,9 @@ const initPhysics = () => {
   window.addEventListener(
     "scroll",
     () => {
+      if (suppressScroll) {
+        return;
+      }
       stopFloat();
       scheduleFloat();
     },
@@ -347,6 +392,9 @@ const initPhysics = () => {
       state.tile.classList.remove("is-dragging");
       content.releasePointerCapture(event.pointerId);
       state.startY = state.y;
+      if (floatActive) {
+        computeStackTargets();
+      }
       scheduleFloat();
     };
 
