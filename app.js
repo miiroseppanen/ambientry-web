@@ -124,7 +124,9 @@ const initPhysics = () => {
   container.classList.add("is-physics");
 
   const updateTileHeight = (state) => {
-    const contentHeight = state.content ? state.content.scrollHeight : state.height;
+    const contentHeight = state.content
+      ? Math.max(state.content.scrollHeight, state.content.getBoundingClientRect().height)
+      : state.height;
     const nextHeight = Math.max(
       state.height,
       contentHeight + state.paddingTop + state.paddingBottom
@@ -176,6 +178,7 @@ const initPhysics = () => {
   };
 
   const computeStackTargets = () => {
+    states.forEach(updateTileHeight);
     const sorted = [...states].sort((a, b) => a.stackIndex - b.stackIndex);
     let cursorY = 0;
     sorted.forEach((state) => {
