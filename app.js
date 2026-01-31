@@ -94,7 +94,7 @@ const initPhysics = () => {
       height: rect.height,
       vx: 0,
       vy: 0,
-      floatSpeed: 6 + Math.random() * 10,
+      floatSpeed: 4 + Math.random() * 8,
       dragging: false,
       dragOffsetX: 0,
       dragOffsetY: 0,
@@ -174,7 +174,9 @@ const initPhysics = () => {
           state.vy = 0;
           return;
         }
-        state.vy = -state.floatSpeed;
+        const targetVy = -state.floatSpeed;
+        const ease = 1 - Math.pow(0.2, dt * 60);
+        state.vy += (targetVy - state.vy) * ease;
         state.y += state.vy * dt;
         if (state.y <= 0) {
           state.y = 0;
@@ -415,6 +417,8 @@ const loadSections = async () => {
     document.body.classList.remove("is-loading");
     document.body.classList.add("is-ready");
   };
+  const isMobileLayout = () =>
+    window.matchMedia("(max-width: 600px)").matches;
 
   try {
     let indexData = null;
@@ -486,7 +490,9 @@ const loadSections = async () => {
   } finally {
     requestAnimationFrame(() => {
       markReady();
-      initPhysics();
+      if (!isMobileLayout()) {
+        initPhysics();
+      }
     });
   }
 };
