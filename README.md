@@ -1,6 +1,6 @@
-# Sayry-web
+# ambientry.fi
 
-Minimalistinen sivu ~ Suomen Ambientyhdistykselle.
+Suomen Ambientyhdistys **~**
 
 ## Sisällön hallinta
 - `content/index.json` listaa `content/`-kansion markdown-tiedostot.
@@ -11,6 +11,10 @@ Minimalistinen sivu ~ Suomen Ambientyhdistykselle.
 ## Rytmi
 - Sisältö sijoitetaan morsekoodin rytmiin sanasta `suomenambientyhdistys`.
 - Piste = sisältöruutu, viiva = tyhjä ruutu.
+
+## Fysiikka
+- `physics.js` hoitaa ruutujen kellunnan ja dragauksen.
+- Mobiilissa kellunta on pehmeämpi ja hitaampi.
 
 ## Käyttö
 - Avaa `index.html` selaimessa tai tarjoa tiedostot kevyellä HTTP-palvelimella.

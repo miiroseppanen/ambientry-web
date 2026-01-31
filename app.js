@@ -266,6 +266,7 @@ const loadSections = async () => {
   } finally {
     requestAnimationFrame(() => {
       markReady();
+      // Physics/drag behavior is loaded separately in physics.js.
       if (typeof window.initPhysics === "function") {
         window.initPhysics(SECTION_CONTAINER);
       }

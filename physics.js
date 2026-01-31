@@ -180,6 +180,7 @@ const initPhysics = (container) => {
   const step = (time) => {
     const dt = Math.min((time - lastTime) / 1000, 0.05);
     lastTime = time;
+    // Slow the floating settle on small screens for a softer feel.
     const mobileLayout = isMobileLayout();
 
     if (floatActive) {
@@ -331,4 +332,5 @@ const initPhysics = (container) => {
   requestAnimationFrame(step);
 };
 
+// Expose the initializer for app.js without module bundling.
 window.initPhysics = initPhysics;

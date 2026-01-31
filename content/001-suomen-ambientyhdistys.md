@@ -1,1 +1,1 @@
-Suomen Ambientydistys **~** ry on voittoa tavoittelematon kulttuuriyhdistys, joka edistää ambient-musiikkia sekä siihen liittyvää kokeellista, audiovisuaalista ja poikkitaiteellista työskentelyä Pirkanmaalla ja valtakunnallisesti.
+Suomen Ambientyhdistys ry on voittoa tavoittelematon kulttuuriyhdistys, joka edistää ambient-musiikkia sekä siihen liittyvää kokeellista, audiovisuaalista ja poikkitaiteellista työskentelyä Pirkanmaalla ja valtakunnallisesti.

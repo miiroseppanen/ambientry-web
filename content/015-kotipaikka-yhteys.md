@@ -1,2 +1,2 @@
-Suomen Ambientydistys **~** ry
+Suomen Ambientyhdistys ry
 Kotipaikka Tampere
