@@ -139,6 +139,27 @@ const initPhysics = () => {
     });
   };
 
+  const isMobileLayout = () =>
+    window.matchMedia("(max-width: 600px)").matches;
+
+  const resolveOverlaps = () => {
+    for (let i = 0; i < states.length; i += 1) {
+      const a = states[i];
+      for (let j = i + 1; j < states.length; j += 1) {
+        const b = states[j];
+        const overlapX = a.x < b.x + b.width && a.x + a.width > b.x;
+        const overlapY = a.y < b.y + b.height && a.y + a.height > b.y;
+        if (!overlapX || !overlapY) {
+          continue;
+        }
+        const push = a.y <= b.y ? b : a;
+        const other = push === a ? b : a;
+        push.y = other.y + other.height + 4;
+        clampPosition(push);
+      }
+    }
+  };
+
   const step = (time) => {
     const dt = Math.min((time - lastTime) / 1000, 0.05);
     lastTime = time;
@@ -181,6 +202,10 @@ const initPhysics = () => {
       }
       clampPosition(state);
     });
+
+    if (isMobileLayout()) {
+      resolveOverlaps();
+    }
 
     applyPositions();
     requestAnimationFrame(step);
@@ -250,6 +275,9 @@ const initPhysics = () => {
       state.x = event.clientX - state.dragOffsetX;
       state.y = event.clientY - state.dragOffsetY;
       clampPosition(state);
+      if (isMobileLayout()) {
+        resolveOverlaps();
+      }
       applyPositions();
     });
 
