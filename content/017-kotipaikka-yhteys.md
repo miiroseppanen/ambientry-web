@@ -1,2 +1,1 @@
-Suomen Ambientyhdistys ry
-Kotipaikka Tampere
+Suomen Ambientyhdistys ry. Kotipaikka: Tampere.

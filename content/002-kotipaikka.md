@@ -1,1 +1,1 @@
-Yhdistyksen kotipaikka on Tampere mutta yhdistys toimii myös Suomen ja maailmanlaajuisesti.
+Yhdistyksen kotipaikka on Tampere. Yhdistys toimii kuitenkin koko Suomessa ja kansainvälisesti.

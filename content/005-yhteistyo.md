@@ -1,1 +1,1 @@
-Yhdistys tekee yhteistyötä myös valtakunnallisesti ja kansainvälisesti.
+Yhdistys ~ tekee yhteistyötä eri toimijoiden kanssa myös valtakunnallisesti ja kansainvälisesti.

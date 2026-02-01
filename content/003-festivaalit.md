@@ -1,1 +1,1 @@
-Yhdistys järjestää festivaaleja, tapahtumia ja esityksiä sekä toteuttaa taiteellisia hankkeita yhteistyössä taiteilijoiden, yhteisöjen ja erilaisten ympäristöjen kanssa.
+Suomen ambientyhdistys ~ järjestää festivaaleja, tapahtumia ja esityksiä, sekä toteuttaa yhteistyönä taiteellisia hankkeita eri taiteilijoiden ja yhteisöjen kanssa erilaisissa ympäristöissä.
