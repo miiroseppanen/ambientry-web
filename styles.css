@@ -27,14 +27,60 @@ body::before {
   content: "";
   position: fixed;
   inset: 0;
-  z-index: -1;
-  background: linear-gradient(180deg, #9d9d9d 0%, #939da1 74.67%, #8f8d9f 100%);
-  opacity: 1;
-  transition: opacity 1.6s ease;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(200, 200, 200, 0.28) 35%,
+      rgba(225, 225, 225, 0.4) 50%,
+      rgba(200, 200, 200, 0.28) 65%,
+      transparent 100%
+    ),
+    linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(210, 210, 210, 0.22) 30%,
+      rgba(230, 230, 230, 0.34) 50%,
+      rgba(210, 210, 210, 0.22) 70%,
+      transparent 100%
+    ),
+    linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(195, 195, 195, 0.2) 30%,
+      rgba(220, 220, 220, 0.32) 50%,
+      rgba(195, 195, 195, 0.2) 70%,
+      transparent 100%
+    );
+  background-repeat: no-repeat;
+  background-size: 980px 64px, 1120px 64px, 900px 64px;
+  background-position: -30% 18%, 30% 55%, 0% 82%;
+  opacity: 0.16;
+  animation: drift-pills 78s ease-in-out infinite;
+  filter: blur(3.6px);
 }
 
-body.is-ready::before {
-  opacity: 0;
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      120% 120% at -40% 25%,
+      rgba(176, 196, 205, 0.28),
+      transparent 76%
+    ),
+    radial-gradient(
+      120% 120% at 140% 60%,
+      rgba(166, 160, 196, 0.28),
+      transparent 76%
+    );
+  opacity: 0.32;
+  animation: drift-glow 60s ease-in-out infinite alternate;
 }
 
 h1,
@@ -197,6 +243,33 @@ body.is-loading .section {
   }
 }
 
+@keyframes drift-pills {
+  0% {
+    background-position: -30% 18%, 30% 55%, 0% 82%;
+  }
+  50% {
+    background-position: 120% 22%, 90% 50%, 70% 78%;
+  }
+  100% {
+    background-position: -30% 18%, 30% 55%, 0% 82%;
+  }
+}
+
+@keyframes drift-glow {
+  0% {
+    transform: translateX(-2%);
+    opacity: 0.35;
+  }
+  50% {
+    transform: translateX(0%);
+    opacity: 0.55;
+  }
+  100% {
+    transform: translateX(2%);
+    opacity: 0.4;
+  }
+}
+
 .section-content p,
 .section-content ul {
   margin-bottom: 12px;
@@ -304,5 +377,10 @@ body.image-overlay-open {
   .site-footer {
     animation: none;
     opacity: 1;
+  }
+
+  body::before,
+  body::after {
+    animation: none;
   }
 }
