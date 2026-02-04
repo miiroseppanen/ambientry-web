@@ -106,24 +106,81 @@ const parseMarkdown = (markdown) => {
   return html;
 };
 
-const parseContent = (markdown) => {
-  const trimmed = markdown.trim();
-  const imageMatch =
-    trimmed.match(/^image:\s*(\S+)/i) ||
-    trimmed.match(/!\[[^\]]*\]\(([^)]+)\)/);
-  if (imageMatch) {
-    const altMatch = trimmed.match(/!\[([^\]]*)\]\(([^)]+)\)/);
+const normalizeBlock = (block) => {
+  if (typeof block === "string") {
+    const trimmed = block.trim();
+    if (!trimmed) {
+      return null;
+    }
+    if (isImageFile(trimmed)) {
+      return {
+        type: "image",
+        src: buildFilePath(trimmed),
+        alt: "",
+      };
+    }
+    return { type: "text", text: trimmed };
+  }
+  if (!block || typeof block !== "object") {
+    return null;
+  }
+  if (block.type === "image" || block.image) {
+    const source = block.src || block.image;
+    if (!source || typeof source !== "string") {
+      return null;
+    }
     return {
       type: "image",
-      src: imageMatch[1],
-      alt: altMatch ? altMatch[1] : "",
+      src: source.includes("/") ? source : buildFilePath(source),
+      alt: typeof block.alt === "string" ? block.alt : "",
     };
   }
-  return { type: "text", html: parseMarkdown(markdown) };
+  if (block.type === "text" || block.text) {
+    const text = typeof block.text === "string" ? block.text.trim() : "";
+    if (!text) {
+      return null;
+    }
+    return { type: "text", text };
+  }
+  if (typeof block.src === "string" && isImageFile(block.src)) {
+    return {
+      type: "image",
+      src: block.src.includes("/") ? block.src : buildFilePath(block.src),
+      alt: typeof block.alt === "string" ? block.alt : "",
+    };
+  }
+  return null;
+};
+
+// Content format: { blocks: [ "text", "image.jpg", { type: "image", src, alt } ] }
+const parseBlocksFromJson = (raw) => {
+  let data = null;
+  try {
+    data = JSON.parse(raw);
+  } catch (error) {
+    return null;
+  }
+  const blocks = Array.isArray(data)
+    ? data
+    : data && Array.isArray(data.blocks)
+      ? data.blocks
+      : null;
+  if (!blocks) {
+    return null;
+  }
+  return blocks.map(normalizeBlock).filter(Boolean);
+};
+
+// Convert normalized block data into renderable html/image data.
+const parseContentBlock = (block) => {
+  if (block.type === "image") {
+    return { type: "image", src: block.src, alt: block.alt || "" };
+  }
+  return { type: "text", html: parseMarkdown(block.text || "") };
 };
 
 // Render a content tile with static content.
-const renderSection = (section, markdown, delaySeconds) => {
+const renderSection = (section, contentData, delaySeconds) => {
   const wrapper = document.createElement("section");
   wrapper.className = "section";
   wrapper.id = section.id;
@@ -131,17 +188,16 @@ const renderSection = (section, markdown, delaySeconds) => {
 
   const content = document.createElement("div");
   content.className = "section-content";
-  const parsed = parseContent(markdown);
-  if (parsed.type === "image") {
+  if (contentData.type === "image") {
     wrapper.classList.add("section--image");
     content.classList.add("section-content--image");
     const image = document.createElement("img");
-    image.src = parsed.src;
-    image.alt = parsed.alt;
+    image.src = contentData.src;
+    image.alt = contentData.alt || "";
     image.loading = "lazy";
     content.appendChild(image);
   } else {
-    content.innerHTML = parsed.html;
+    content.innerHTML = contentData.html || "";
   }
 
   wrapper.appendChild(content);
@@ -183,7 +239,7 @@ const getInlineIndex = () => {
   }
 };
 
-const getInlineMarkdown = (fileName) => {
+const getInlineContent = (fileName) => {
   const block = document.querySelector(`[data-file="${fileName}"]`);
   if (!block) {
     return null;
@@ -239,28 +295,6 @@ const buildMorseSlots = (word) => {
 
 const isImageFile = (fileName) => /\.(jpe?g|png|webp|gif)$/i.test(fileName);
 
-// Sort by three-digit prefix, then alphabetically.
-const normalizeFiles = (files) =>
-  files
-    .filter(
-      (file) =>
-        typeof file === "string" && (file.endsWith(".md") || isImageFile(file))
-    )
-    .map((file) => file.trim())
-    .filter(Boolean)
-    .sort((first, second) => {
-      const firstMatch = first.match(/^(\d{3})-/);
-      const secondMatch = second.match(/^(\d{3})-/);
-      const firstIndex = firstMatch ? Number(firstMatch[1]) : Number.MAX_SAFE_INTEGER;
-      const secondIndex = secondMatch
-        ? Number(secondMatch[1])
-        : Number.MAX_SAFE_INTEGER;
-      if (firstIndex !== secondIndex) {
-        return firstIndex - secondIndex;
-      }
-      return first.localeCompare(second);
-    });
-
 // Allow short names in the index file.
 const buildFilePath = (fileName) =>
   fileName.startsWith("content/") ? fileName : `content/${fileName}`;
@@ -289,13 +323,39 @@ const loadSections = async () => {
     }
     SECTION_CONTAINER.innerHTML = "";
 
-    const files = normalizeFiles(indexData ? indexData.files || [] : []);
-    if (!files.length) {
+    // Single JSON file source for all content blocks.
+    const defaultFile = "etusivu.json";
+    const sourceFile =
+      indexData && Array.isArray(indexData.files) && indexData.files.length
+        ? String(indexData.files[0] || "").trim()
+        : defaultFile;
+    if (!sourceFile) {
       throw new Error("Sisältöluetteloa ei löytynyt.");
     }
 
+    let raw = null;
+    try {
+      const response = await fetch(buildFilePath(sourceFile));
+      if (response.ok) {
+        raw = await response.text();
+      }
+    } catch (error) {
+      raw = null;
+    }
+    if (!raw) {
+      raw = getInlineContent(sourceFile);
+    }
+    if (!raw) {
+      throw new Error("Sisältöä ei löytynyt.");
+    }
+
+    const blocks = parseBlocksFromJson(raw);
+    if (!blocks || !blocks.length) {
+      throw new Error("Sisältöä ei löytynyt.");
+    }
+
     const morseSlots = buildMorseSlots("suomenambientyhdistys");
-    let fileIndex = 0;
+    let blockIndex = 0;
 
     const totalSlots = Math.max(morseSlots.length - 1, 1);
     for (const [slotIndex, slot] of morseSlots.entries()) {
@@ -308,38 +368,17 @@ const loadSections = async () => {
         );
         continue;
       }
-      if (fileIndex >= files.length) {
+      if (blockIndex >= blocks.length) {
         break;
       }
-      const fileName = files[fileIndex];
-      fileIndex += 1;
-
-      let markdown = null;
-      if (isImageFile(fileName)) {
-        markdown = `image: ${buildFilePath(fileName)}`;
-      } else {
-        try {
-          const sectionResponse = await fetch(buildFilePath(fileName));
-          if (sectionResponse.ok) {
-            markdown = await sectionResponse.text();
-          }
-        } catch (error) {
-          markdown = null;
-        }
-      }
-      if (!markdown) {
-        markdown = getInlineMarkdown(fileName);
-      }
-      if (!markdown) {
-        const label = fileName || "";
-        const message = label
-          ? `Osio "${label}" ei lataudu.`
-          : "Osio ei lataudu.";
-        SECTION_CONTAINER.appendChild(renderError(message, delaySeconds));
-        continue;
-      }
+      const block = blocks[blockIndex];
+      blockIndex += 1;
       SECTION_CONTAINER.appendChild(
-        renderSection({ id: `section-${fileIndex}` }, markdown, delaySeconds)
+        renderSection(
+          { id: `section-${blockIndex}` },
+          parseContentBlock(block),
+          delaySeconds
+        )
       );
     }
   } catch (error) {

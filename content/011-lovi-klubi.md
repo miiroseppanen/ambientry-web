@@ -1,1 +1,0 @@
-Lovi-klubi on osa yhdistyksen jatkuvaa toimintaa. Se tarjoaa säännöllisen esiintymis- ja kohtaamispaikan ambientille ja kokeelliselle musiikille sekä mahdollistaa pienimuotoisemmat esitykset ja kokeilut osana yhdistyksen toimintaa. Seuraa Lovi-klubia Instagramissa @lovi_klubi: [instagram.com/lovi_klubi](https://instagram.com/lovi_klubi)
