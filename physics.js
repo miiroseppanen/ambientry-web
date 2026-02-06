@@ -292,6 +292,9 @@ const initPhysics = (container) => {
       if (event.pointerType === "mouse" && event.button !== 0) {
         return;
       }
+      if (event.target.closest("a")) {
+        return;
+      }
       stopFloat();
       state.dragging = true;
       state.tile.classList.add("is-dragging");
