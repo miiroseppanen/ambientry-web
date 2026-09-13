@@ -15,7 +15,7 @@ body {
   font-weight: 400;
   line-height: 1.5;
   background-color: #9c9c9c;
-  animation: bg-breathe 60s ease-in-out infinite;
+  animation: bg-breathe 90s ease-in-out infinite;
   position: relative;
   color: #2b2b2b;
   padding: 32px;
@@ -99,6 +99,15 @@ h6 {
 a {
   color: inherit;
   text-decoration: underline;
+  display: inline-block;
+  transition:
+    transform 0.7s cubic-bezier(0.4, 0, 0.2, 1),
+    color 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+a:hover,
+a:focus-visible {
+  transform: translateY(-6px);
 }
 
 ul {
@@ -137,6 +146,7 @@ code {
   font-size: 18px;
   color: inherit;
   text-decoration: none;
+  transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .site-title .name {
@@ -165,12 +175,13 @@ code {
 .site-nav a {
   color: #fff;
   text-decoration: none;
-  transition: color 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: nav-breathe 90s ease-in-out infinite;
 }
 
 .site-nav a:hover,
 .site-nav a:focus-visible {
   color: #1a1a1a;
+  animation: none;
 }
 
 .site-nav a:focus-visible {
@@ -268,13 +279,30 @@ body.is-loading .section {
   grid-column: 1 / -1;
   overflow: visible;
   cursor: auto;
+  pointer-events: auto;
+}
+
+.section--form .section-content {
+  padding: 0;
+  height: auto;
 }
 
 .form-embed {
   width: 100%;
-  min-height: 70vh;
+  height: 240px;
+  min-height: 240px;
   border: 0;
   background: transparent;
+  display: block;
+}
+
+.sections.is-physics .form-embed {
+  height: 1900px;
+  min-height: 1900px;
+}
+
+.sections.is-hover-paused .section {
+  animation-play-state: paused;
 }
 
 .section-content .event-date {
@@ -335,8 +363,22 @@ body.is-loading .section {
   100% {
     background-color: #9c9c9c;
   }
-  50% {
+  33% {
     background-color: #77c4c5;
+  }
+  67% {
+    background-color: #f3f3f3;
+  }
+}
+
+@keyframes nav-breathe {
+  0%,
+  33%,
+  100% {
+    color: #fff;
+  }
+  67% {
+    color: #2b2b2b;
   }
 }
 
@@ -476,6 +518,13 @@ body.image-overlay-open {
 
   .site-nav a {
     transition: none;
+    animation: none;
+  }
+
+  .site-title,
+  a {
+    transition: none;
+    transform: none;
   }
 
   body {

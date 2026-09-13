@@ -41,6 +41,7 @@ const initPhysics = (container) => {
       targetY: y,
       paddingTop,
       paddingBottom,
+      pinned: tile.classList.contains("section--form"),
     };
     return state;
   });
@@ -81,6 +82,9 @@ const initPhysics = (container) => {
     const gap = 24;
     const columnWidth = avgWidth + gap;
     states.forEach((state) => {
+      if (state.pinned) {
+        return;
+      }
       state.columnIndex = columnWidth > 0 ? Math.round(state.x / columnWidth) : 0;
     });
   };
@@ -90,6 +94,9 @@ const initPhysics = (container) => {
     assignColumns();
     const columns = new Map();
     states.forEach((state) => {
+      if (state.pinned) {
+        return;
+      }
       if (!columns.has(state.columnIndex)) {
         columns.set(state.columnIndex, []);
       }
@@ -106,6 +113,13 @@ const initPhysics = (container) => {
       });
       maxBottom = Math.max(maxBottom, cursorY);
     });
+    states.forEach((state) => {
+      if (!state.pinned) {
+        return;
+      }
+      state.targetY = state.y;
+      maxBottom = Math.max(maxBottom, state.y + state.height);
+    });
     container.style.height = `${Math.max(maxBottom, container.clientHeight)}px`;
   };
 
@@ -113,6 +127,7 @@ const initPhysics = (container) => {
   let floatActive = false;
   let floatTimer = null;
   let suppressScroll = false;
+  let hoverPause = false;
 
   states.forEach((state) => {
     const { tile, x, y, width, height } = state;
@@ -121,6 +136,12 @@ const initPhysics = (container) => {
     tile.style.top = `${y}px`;
     tile.style.width = `${width}px`;
     tile.style.height = `${height}px`;
+    if (state.pinned) {
+      state.x = 0;
+      state.width = container.clientWidth;
+      tile.style.left = "0px";
+      tile.style.width = `${state.width}px`;
+    }
     if (state.image) {
       if (state.image.complete) {
         updateTileHeight(state);
@@ -141,6 +162,34 @@ const initPhysics = (container) => {
       }
     }
   });
+
+  const layoutPinned = () => {
+    const free = states.filter((state) => !state.pinned);
+    const othersBottom = Math.max(
+      0,
+      ...free.map((state) => state.y + state.height)
+    );
+    states
+      .filter((state) => state.pinned)
+      .forEach((state) => {
+        updateTileHeight(state);
+        state.x = 0;
+        state.width = container.clientWidth;
+        state.y = othersBottom + 24;
+        state.targetY = state.y;
+        state.tile.style.left = "0px";
+        state.tile.style.top = `${state.y}px`;
+        state.tile.style.width = `${state.width}px`;
+        state.tile.style.height = `${state.height}px`;
+      });
+    const maxBottom = Math.max(
+      ...states.map((state) => state.y + state.height),
+      0
+    );
+    container.style.height = `${maxBottom}px`;
+  };
+
+  layoutPinned();
 
   const clampPosition = (state) => {
     const maxX = Math.max(container.clientWidth - state.width, 0);
@@ -193,7 +242,7 @@ const initPhysics = (container) => {
 
     if (floatActive) {
       states.forEach((state) => {
-        if (state.dragging) {
+        if (state.dragging || state.pinned) {
           return;
         }
         const dy = state.targetY - state.y;
@@ -216,7 +265,7 @@ const initPhysics = (container) => {
     }
 
     states.forEach((state) => {
-      if (state.dragging) {
+      if (state.dragging || state.pinned) {
         return;
       }
       if (!floatActive) {
@@ -261,18 +310,43 @@ const initPhysics = (container) => {
   };
 
   const scheduleFloat = () => {
+    if (hoverPause) {
+      return;
+    }
     if (floatTimer) {
       clearTimeout(floatTimer);
     }
     floatTimer = setTimeout(() => {
+      if (hoverPause) {
+        return;
+      }
       startFloat();
     }, 700);
+  };
+
+  const pauseForHover = () => {
+    hoverPause = true;
+    container.classList.add("is-hover-paused");
+    if (floatTimer) {
+      clearTimeout(floatTimer);
+      floatTimer = null;
+    }
+    stopFloat();
+  };
+
+  const resumeFromHover = () => {
+    if (!hoverPause) {
+      return;
+    }
+    hoverPause = false;
+    container.classList.remove("is-hover-paused");
+    scheduleFloat();
   };
 
   window.addEventListener(
     "scroll",
     () => {
-      if (suppressScroll) {
+      if (suppressScroll || hoverPause) {
         return;
       }
       stopFloat();
@@ -283,9 +357,27 @@ const initPhysics = (container) => {
 
   scheduleFloat();
 
+  container.addEventListener("pointerenter", pauseForHover);
+  container.addEventListener("pointerleave", (event) => {
+    if (!event.relatedTarget) {
+      return;
+    }
+    resumeFromHover();
+  });
+
+  document.addEventListener("pointermove", (event) => {
+    if (!hoverPause) {
+      return;
+    }
+    if (container.contains(event.target)) {
+      return;
+    }
+    resumeFromHover();
+  });
+
   states.forEach((state) => {
-    const { tile, content } = state;
-    if (!content) {
+    const { content } = state;
+    if (!content || state.pinned) {
       return;
     }
     content.addEventListener("pointerdown", (event) => {

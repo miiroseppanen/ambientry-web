@@ -248,6 +248,7 @@ const renderSection = (section, contentData, delaySeconds) => {
     iframe.src = contentData.src;
     iframe.title = contentData.title || "";
     iframe.loading = "lazy";
+    iframe.setAttribute("scrolling", "no");
     content.appendChild(iframe);
   } else if (contentData.type === "event") {
     wrapper.classList.add("section--event");
