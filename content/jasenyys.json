@@ -1,0 +1,13 @@
+{
+  "blocks": [
+    "Suomen Ambientyhdistyksen jäseneksi voi liittyä yksityishenkilö tai yhteisö, joka hyväksyy yhdistyksen tarkoituksen ja säännöt.",
+    "Jäsenet hyväksyy yhdistyksen hallitus.",
+    "Jäsenmaksu on 20 € / vuosi.\n\nLiittymismaksua ei peritä.",
+    "Täytä jäsenhakemus alla. Hakemukset käsitellään hallituksen toimesta ja jäsenyydestä ilmoitetaan sähköpostitse.",
+    {
+      "type": "form",
+      "src": "https://docs.google.com/forms/d/e/1FAIpQLSclkWcki3KJRFSK3X8HQ_DeA5rbysdHF7wx57051BHojHzh6A/viewform?embedded=true",
+      "title": "Suomen Ambientyhdistys ry – jäsenhakemus"
+    }
+  ]
+}

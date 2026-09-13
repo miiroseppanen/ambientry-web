@@ -1,4 +1,4 @@
-// App: build the grid from content files and apply morse rhythm.
+// App: build floating tiles from content files and apply morse rhythm.
 const SECTION_CONTAINER = document.getElementById("sections");
 const BASE_TITLE = "Suomen Ambientyhdistys ry";
 const TITLE_WITH_TILDE = `${BASE_TITLE} ~`;
@@ -18,6 +18,9 @@ const initTitleAnimation = () => {
 };
 
 const initImageOverlay = () => {
+  if (!SECTION_CONTAINER) {
+    return;
+  }
   let overlay = null;
   const closeOverlay = () => {
     if (!overlay) {
@@ -73,7 +76,6 @@ const initImageOverlay = () => {
   });
 };
 
-// Minimal inline markdown parsing for safe, tiny content blocks.
 const escapeHtml = (value) =>
   value
     .replace(/&/g, "&amp;")
@@ -106,6 +108,11 @@ const parseMarkdown = (markdown) => {
   return html;
 };
 
+const isImageFile = (fileName) => /\.(jpe?g|png|webp|gif)$/i.test(fileName);
+
+const buildFilePath = (fileName) =>
+  fileName.startsWith("content/") ? fileName : `content/${fileName}`;
+
 const normalizeBlock = (block) => {
   if (typeof block === "string") {
     const trimmed = block.trim();
@@ -123,6 +130,26 @@ const normalizeBlock = (block) => {
   }
   if (!block || typeof block !== "object") {
     return null;
+  }
+  if (block.type === "empty") {
+    return { type: "empty" };
+  }
+  if (block.type === "year") {
+    return { type: "year", year: block.year };
+  }
+  if (block.type === "event") {
+    return {
+      type: "event",
+      title: block.title || "",
+      displayDate: block.displayDate || "",
+    };
+  }
+  if (block.type === "form") {
+    return {
+      type: "form",
+      src: block.src || "",
+      title: block.title || "",
+    };
   }
   if (block.type === "image" || block.image) {
     const source = block.src || block.image;
@@ -152,7 +179,6 @@ const normalizeBlock = (block) => {
   return null;
 };
 
-// Content format: { blocks: [ "text", "image.jpg", { type: "image", src, alt } ] }
 const parseBlocksFromJson = (raw) => {
   let data = null;
   try {
@@ -171,16 +197,34 @@ const parseBlocksFromJson = (raw) => {
   return blocks.map(normalizeBlock).filter(Boolean);
 };
 
-// Convert normalized block data into renderable html/image data.
 const parseContentBlock = (block) => {
   if (block.type === "image") {
     return { type: "image", src: block.src, alt: block.alt || "" };
   }
+  if (block.type === "form") {
+    return { type: "form", src: block.src, title: block.title || "" };
+  }
+  if (block.type === "event") {
+    return {
+      type: "event",
+      title: block.title,
+      displayDate: block.displayDate,
+    };
+  }
+  if (block.type === "year") {
+    return { type: "year", year: block.year };
+  }
+  if (block.type === "empty") {
+    return { type: "empty" };
+  }
   return { type: "text", html: parseMarkdown(block.text || "") };
 };
 
-// Render a content tile with static content.
 const renderSection = (section, contentData, delaySeconds) => {
+  if (contentData.type === "empty") {
+    return renderEmptySection(section, delaySeconds);
+  }
+
   const wrapper = document.createElement("section");
   wrapper.className = "section";
   wrapper.id = section.id;
@@ -188,6 +232,7 @@ const renderSection = (section, contentData, delaySeconds) => {
 
   const content = document.createElement("div");
   content.className = "section-content";
+
   if (contentData.type === "image") {
     wrapper.classList.add("section--image");
     content.classList.add("section-content--image");
@@ -196,16 +241,39 @@ const renderSection = (section, contentData, delaySeconds) => {
     image.alt = contentData.alt || "";
     image.loading = "lazy";
     content.appendChild(image);
+  } else if (contentData.type === "form") {
+    wrapper.classList.add("section--form");
+    const iframe = document.createElement("iframe");
+    iframe.className = "form-embed";
+    iframe.src = contentData.src;
+    iframe.title = contentData.title || "";
+    iframe.loading = "lazy";
+    content.appendChild(iframe);
+  } else if (contentData.type === "event") {
+    wrapper.classList.add("section--event");
+    if (contentData.displayDate) {
+      const date = document.createElement("p");
+      date.className = "event-date";
+      date.textContent = contentData.displayDate;
+      content.appendChild(date);
+    }
+    const name = document.createElement("p");
+    name.className = "event-name";
+    name.textContent = contentData.title || "";
+    content.appendChild(name);
+  } else if (contentData.type === "year") {
+    wrapper.classList.add("section--year");
+    const year = document.createElement("p");
+    year.textContent = String(contentData.year);
+    content.appendChild(year);
   } else {
     content.innerHTML = contentData.html || "";
   }
 
   wrapper.appendChild(content);
-
   return wrapper;
 };
 
-// Empty tiles create visual "dashes" in the rhythm.
 const renderEmptySection = (section, delaySeconds) => {
   const wrapper = document.createElement("section");
   wrapper.className = "section section--empty";
@@ -215,7 +283,6 @@ const renderEmptySection = (section, delaySeconds) => {
   return wrapper;
 };
 
-// Errors render as tiles to keep layout consistent.
 const renderError = (message, delaySeconds = 0) => {
   const errorBlock = document.createElement("section");
   errorBlock.className = "section";
@@ -226,7 +293,6 @@ const renderError = (message, delaySeconds = 0) => {
   return errorBlock;
 };
 
-// Inline fallback for file:// or missing fetch.
 const getInlineIndex = () => {
   const indexTag = document.getElementById("content-index");
   if (!indexTag) {
@@ -247,7 +313,6 @@ const getInlineContent = (fileName) => {
   return block.textContent.trim();
 };
 
-// Morse rhythm builder for "suomenambientyhdistys".
 const MORSE_MAP = {
   a: ".-",
   b: "-...",
@@ -293,86 +358,103 @@ const buildMorseSlots = (word) => {
   return slots;
 };
 
-const isImageFile = (fileName) => /\.(jpe?g|png|webp|gif)$/i.test(fileName);
+const loadPageBlocks = async () => {
+  const defaultFile = "etusivu.json";
+  const sourceFile =
+    (SECTION_CONTAINER.dataset.content || "").trim() || defaultFile;
 
-// Allow short names in the index file.
-const buildFilePath = (fileName) =>
-  fileName.startsWith("content/") ? fileName : `content/${fileName}`;
+  let raw = null;
+  try {
+    const response = await fetch(buildFilePath(sourceFile), { cache: "no-store" });
+    if (response.ok) {
+      raw = await response.text();
+    }
+  } catch (error) {
+    raw = null;
+  }
+  if (!raw) {
+    raw = getInlineContent(sourceFile);
+  }
+  if (!raw) {
+    const indexData = getInlineIndex();
+    const fallback =
+      indexData && Array.isArray(indexData.files) && indexData.files[0]
+        ? String(indexData.files[0]).trim()
+        : "";
+    if (fallback && fallback !== sourceFile) {
+      try {
+        const response = await fetch(buildFilePath(fallback), { cache: "no-store" });
+        if (response.ok) {
+          raw = await response.text();
+        }
+      } catch (error) {
+        raw = null;
+      }
+      if (!raw) {
+        raw = getInlineContent(fallback);
+      }
+    }
+  }
+  if (!raw) {
+    throw new Error("Sisältöä ei löytynyt.");
+  }
 
-// Main loader: fetch index, map content to rhythm, render tiles.
+  const blocks = parseBlocksFromJson(raw);
+  if (!blocks || !blocks.length) {
+    throw new Error("Sisältöä ei löytynyt.");
+  }
+
+  const eventsSource = (SECTION_CONTAINER.dataset.eventsSource || "").trim();
+  if (eventsSource && typeof window.buildEventBlocks === "function") {
+    const eventBlocks = await window.buildEventBlocks(eventsSource);
+    eventBlocks.forEach((block) => {
+      const normalized = normalizeBlock(block);
+      if (normalized) {
+        blocks.push(normalized);
+      }
+    });
+  }
+
+  return blocks;
+};
+
 const loadSections = async () => {
+  if (!SECTION_CONTAINER) {
+    return;
+  }
   const markReady = () => {
     document.body.classList.remove("is-loading");
     document.body.classList.add("is-ready");
   };
-  const isMobileLayout = () =>
-    window.matchMedia("(max-width: 600px)").matches;
 
   try {
-    let indexData = null;
-    try {
-      const response = await fetch("content/index.json");
-      if (response.ok) {
-        indexData = await response.json();
-      }
-    } catch (error) {
-      indexData = null;
-    }
-    if (!indexData) {
-      indexData = getInlineIndex();
-    }
     SECTION_CONTAINER.innerHTML = "";
-
-    // Single JSON file source for all content blocks.
-    const defaultFile = "etusivu.json";
-    const sourceFile =
-      indexData && Array.isArray(indexData.files) && indexData.files.length
-        ? String(indexData.files[0] || "").trim()
-        : defaultFile;
-    if (!sourceFile) {
-      throw new Error("Sisältöluetteloa ei löytynyt.");
-    }
-
-    let raw = null;
-    try {
-      const response = await fetch(buildFilePath(sourceFile));
-      if (response.ok) {
-        raw = await response.text();
-      }
-    } catch (error) {
-      raw = null;
-    }
-    if (!raw) {
-      raw = getInlineContent(sourceFile);
-    }
-    if (!raw) {
-      throw new Error("Sisältöä ei löytynyt.");
-    }
-
-    const blocks = parseBlocksFromJson(raw);
-    if (!blocks || !blocks.length) {
-      throw new Error("Sisältöä ei löytynyt.");
-    }
-
-    const morseSlots = buildMorseSlots("suomenambientyhdistys");
+    const blocks = await loadPageBlocks();
+    const pattern = buildMorseSlots("suomenambientyhdistys");
     let blockIndex = 0;
+    let slotIndex = 0;
+    const maxSlots = Math.max(pattern.length * 8, blocks.length * 4);
 
-    const totalSlots = Math.max(morseSlots.length - 1, 1);
-    for (const [slotIndex, slot] of morseSlots.entries()) {
-      const spreadSeconds = 1;
+    while (blockIndex < blocks.length && slotIndex < maxSlots) {
+      const slot = pattern[slotIndex % pattern.length];
       const delaySeconds =
-        0.4 + (slotIndex / totalSlots) * spreadSeconds + (slotIndex % 5) * 0.1;
+        0.4 + (slotIndex / Math.max(maxSlots, 1)) * 1 + (slotIndex % 5) * 0.1;
+      slotIndex += 1;
+
       if (slot === "-") {
         SECTION_CONTAINER.appendChild(
           renderEmptySection({ id: `empty-${slotIndex}` }, delaySeconds)
         );
         continue;
       }
-      if (blockIndex >= blocks.length) {
-        break;
-      }
+
       const block = blocks[blockIndex];
       blockIndex += 1;
+      if (block.type === "year" && blockIndex > 1) {
+        SECTION_CONTAINER.appendChild(
+          renderEmptySection({ id: `gap-${slotIndex}` }, delaySeconds)
+        );
+      }
       SECTION_CONTAINER.appendChild(
         renderSection(
           { id: `section-${blockIndex}` },
@@ -387,7 +469,6 @@ const loadSections = async () => {
   } finally {
     requestAnimationFrame(() => {
       markReady();
-      // Physics/drag behavior is loaded separately in physics.js.
       if (typeof window.initPhysics === "function") {
         window.initPhysics(SECTION_CONTAINER);
       }

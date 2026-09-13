@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="fi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tapahtumat — Suomen Ambientyhdistys</title>
+    <meta
+      name="description"
+      content="Suomen Ambientyhdistys järjestää festivaaleja, konsertteja, klubitapahtumia, paikkasidonnaisia teoksia ja muita taiteellisia hankkeita."
+    />
+    <link rel="icon" href="favicon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="is-loading">
+    <header class="site-header">
+      <a href="/" class="site-title">
+        <span class="name">Suomen Ambientyhdistys <strong>~</strong></span>
+      </a>
+      <nav class="site-nav" aria-label="Päänavigaatio">
+        <a href="/">koti</a>
+        <a href="/tapahtumat.html" aria-current="page">tapahtumat</a>
+        <a href="/jasenyys.html">jäseneksi</a>
+        <a href="/hallitus.html">hallitus</a>
+        <a href="/yhteys.html">yhteys</a>
+      </nav>
+    </header>
+
+    <main
+      id="sections"
+      class="sections"
+      data-content="tapahtumat.json"
+      data-events-source="content/events"
+      aria-live="polite"
+    >
+      <noscript>Tarvitset JavaScriptin sisällön lataamiseen.</noscript>
+    </main>
+
+    <script type="application/json" data-file="tapahtumat.json">
+      {
+        "blocks": [
+          "Suomen Ambientyhdistys järjestää festivaaleja, konsertteja, klubitapahtumia, paikkasidonnaisia teoksia ja muita taiteellisia hankkeita.",
+          "[Ajankohtaiset tapahtumat → Instagram](https://instagram.com/siirtyma)",
+          "Siirtymä",
+          "Siirtymä on Suomen Ambientyhdistyksen keskeinen tapahtumakokonaisuus. Sen ydin on vuosittain Tampereella järjestettävä festivaali.",
+          "Kokonaisuuteen kuuluu myös satelliittitapahtumia, paikkasidonnaisia ja ympäristötaiteellisia teoksia sekä muita esityksiä.",
+          "Siirtymä toimii alustana konserteille, esityksille ja uusille taiteellisille tuotannoille.",
+          "[siirtyma.com](https://siirtyma.com)",
+          "Lovi",
+          "Lovi-klubi on osa Suomen Ambientyhdistyksen jatkuvaa toimintaa ja ambientiin sekä kokeelliseen musiikkiin keskittyvää tapahtumatoimintaa.",
+          "Arkisto 2017—2026"
+        ]
+      }
+    </script>
+
+    <script src="physics.js"></script>
+    <script src="events.js?v=2"></script>
+    <script src="app.js?v=2"></script>
+  </body>
+</html>

@@ -4,22 +4,20 @@ Suomen Ambientyhdistys **~**
 
 Live: https://sayry-web-ambientyhdistys.vercel.app/
 
-## Sisällön hallinta
-- `content/index.json` osoittaa yksittäiseen JSON-sisältöön: `content/etusivu.json`.
-- `content/etusivu.json` sisältää `blocks`-taulukon, jossa jokainen alkio on yksi ruutu.
-- Tekstiruutu on tavallinen merkkijono; linkit voi tehdä markdownilla `[teksti](url)`.
-- Kuvat lisätään omana alkionaan pelkällä tiedostonimellä, esim. `"008-siirtyma.jpg"`.
+## Sivut
+- `index.html` — koti
+- `tapahtumat.html`
+- `jasenyys.html` — jäseneksi
+- `hallitus.html`
+- `yhteys.html`
 
-## Rytmi
-- Sisältö sijoitetaan morsekoodin rytmiin sanasta `suomenambientyhdistys`.
-- Piste = sisältöruutu, viiva = tyhjä ruutu.
+Sisältö sijoitetaan kelluviin ruutuihin. `physics.js` hoitaa ruutujen kellunnan ja dragauksen. Rytmi tulee morsekoodista sanasta `suomenambientyhdistys`.
 
-## Fysiikka
-- `physics.js` hoitaa ruutujen kellunnan ja dragauksen.
-- Mobiilissa kellunta on pehmeämpi ja hitaampi.
+## Tapahtuma-arkisto
+- `content/events/index.json` listaa markdown-tiedostot näyttöjärjestyksessä.
+- Yksi tiedosto per tapahtuma tai tapahtumasarja.
+- `year` on pakollinen ja toimii erillään tarkasta `date`-kentästä.
+- `date` merkitään vain, kun tarkka päivä on tiedossa.
 
 ## Käyttö
-- Avaa `index.html` selaimessa tai tarjoa tiedostot kevyellä HTTP-palvelimella.
-- Inline-sisältö `index.html`-tiedostossa toimii fallbackina ilman palvelinta.
-- Kuvien ja `content/index.json`-tiedoston takia suosittelemme HTTP-palvelinta:
-  - `python3 -m http.server 8000` ja avaa `http://localhost:8000`.
+- `python3 -m http.server 8000` ja avaa `http://localhost:8000`.
