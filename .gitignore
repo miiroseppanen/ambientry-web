@@ -1,2 +1,17 @@
 .vercel
 .DS_Store
+
+# Impeccable skill installs (reinstall with: npx impeccable install)
+.claude/
+.cursor/
+.agents/
+.codex/
+
+# Impeccable local and generated files
+.impeccable/config.local.json
+.impeccable/live/sessions/
+.impeccable/live/roots.json
+.impeccable/live/inject-journal.json
+.impeccable/build/
+.impeccable/review/
+.impeccable/mocks/

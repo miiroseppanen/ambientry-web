@@ -1,0 +1,12 @@
+{
+  "files": [
+    "index.html",
+    "tapahtumat.html",
+    "jasenyys.html",
+    "hallitus.html",
+    "yhteys.html"
+  ],
+  "insertBefore": "</body>",
+  "commentSyntax": "html",
+  "cspChecked": true
+}
